@@ -17,6 +17,25 @@
 /.next/
 /out/
 
+ # Additional entries to be added
+ # Node
+ node_modules/
+ .env*
+ .next/
+ .vercel/
+ dist/
+ pnpm-lock.yaml
+ .DS_Store
+ *.log
+ coverage/
+
+ # IDE
+ .vscode/
+ .idea/
+ *.swp
+
+ # OS
+ Thumbs.db
 # production
 /build
 

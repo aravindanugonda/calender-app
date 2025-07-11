@@ -1,3 +1,32 @@
+# Calendar App
+
+A modern calendar and task management app built with Next.js, React, Drizzle ORM, and Auth0.
+
+## Features
+- Calendar views (month, week)
+- Task management
+- Auth0 authentication
+- Responsive layout
+- PWA support
+
+## Getting Started
+
+1. Install dependencies:
+   ```bash
+   pnpm install
+   ```
+2. Run the development server:
+   ```bash
+   pnpm dev
+   ```
+
+## Project Structure
+- `src/` - Main source code
+- `public/` - Static assets
+- `drizzle/` - Database schema and migrations
+
+## License
+MIT
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
 ## Getting Started
