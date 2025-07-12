@@ -8,7 +8,7 @@ export function TaskList({ tasks }: { tasks: Task[] }) {
   }
 
   return (
-    <div className="space-y-1">
+    <div className="space-y-2">
       {tasks
         .sort((a, b) => a.position - b.position)
         .map((task) => (

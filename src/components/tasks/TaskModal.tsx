@@ -43,30 +43,35 @@ export function TaskModal({ isOpen, onClose, selectedDate }: { isOpen: boolean; 
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-20 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg shadow-xl w-full max-w-md mx-4">
-        <div className="flex items-center justify-between p-4 border-b border-gray-100">
-          <h2 className="text-lg font-medium text-gray-900">
-            {isSomedayTask ? "Add Someday Task" : "Add Task"}
-          </h2>
-          <button
-            onClick={onClose}
-            className="p-1 hover:bg-gray-100 rounded-md transition-colors"
-          >
-            <X className="w-5 h-5 text-gray-500" />
-          </button>
-        </div>
+    <div className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50 backdrop-blur-sm">
+      <div className="calendar-paper w-full max-w-md mx-4 relative">
+        {/* Paper binding effect */}
+        <div className="absolute left-0 top-0 bottom-0 w-8 bg-gradient-to-r from-red-200 to-red-300 rounded-l-lg border-r-2 border-red-400"></div>
+        <div className="absolute left-2 top-6 bottom-6 w-1 bg-red-400 rounded-full"></div>
         
-        <form onSubmit={handleSubmit} className="p-4">
-          <div className="space-y-4">
+        {/* Modal content */}
+        <div className="pl-12 pr-6 py-6">
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-xl font-bold text-gray-900">
+              {isSomedayTask ? "✨ Someday Task" : "📝 New Task"}
+            </h2>
+            <button
+              onClick={onClose}
+              className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+            >
+              <X className="w-5 h-5 text-gray-500" />
+            </button>
+          </div>
+          
+          <form onSubmit={handleSubmit} className="space-y-6">
             {/* Task title */}
             <div>
               <input
                 type="text"
-                placeholder={isSomedayTask ? "What do you want to do someday?" : "What needs to be done?"}
+                placeholder={isSomedayTask ? "What do you want to do someday? ✨" : "What needs to be done? 📋"}
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-lg"
                 autoFocus
                 required
               />
@@ -75,27 +80,27 @@ export function TaskModal({ isOpen, onClose, selectedDate }: { isOpen: boolean; 
             {/* Description */}
             <div>
               <textarea
-                placeholder="Add a description (optional)"
+                placeholder="Add a description (optional) 📝"
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+                className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
                 rows={3}
               />
             </div>
 
             {/* Color picker */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Color
+              <label className="block text-sm font-semibold text-gray-700 mb-3">
+                🎨 Choose a color
               </label>
-              <div className="flex gap-2">
+              <div className="flex gap-3">
                 {COLORS.map((c) => (
                   <button
                     key={c}
                     type="button"
                     className={cn(
-                      "w-8 h-8 rounded-full border-2 transition-all",
-                      c === color ? "border-gray-400 scale-110" : "border-gray-200 hover:border-gray-300"
+                      "w-10 h-10 rounded-full border-3 transition-all shadow-sm",
+                      c === color ? "border-gray-600 scale-110 shadow-lg" : "border-gray-200 hover:border-gray-400 hover:scale-105"
                     )}
                     style={{ backgroundColor: c }}
                     onClick={() => setColor(c)}
@@ -105,40 +110,47 @@ export function TaskModal({ isOpen, onClose, selectedDate }: { isOpen: boolean; 
             </div>
 
             {/* Date display */}
-            <div className="text-sm text-gray-500">
-              {isSomedayTask ? (
-                <span className="flex items-center gap-1">
-                  <span>∞</span>
-                  Someday
-                </span>
-              ) : (
-                selectedDate?.toLocaleDateString('en-US', {
-                  weekday: 'long',
-                  year: 'numeric',
-                  month: 'long',
-                  day: 'numeric'
-                })
-              )}
+            <div className="bg-gray-50 p-4 rounded-lg border-l-4 border-blue-400">
+              <div className="text-sm font-medium text-gray-700">
+                {isSomedayTask ? (
+                  <span className="flex items-center gap-2">
+                    <span className="text-lg">∞</span>
+                    <span>Someday / Maybe</span>
+                  </span>
+                ) : (
+                  <span className="flex items-center gap-2">
+                    <span>📅</span>
+                    <span>
+                      {selectedDate?.toLocaleDateString('en-US', {
+                        weekday: 'long',
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric'
+                      })}
+                    </span>
+                  </span>
+                )}
+              </div>
             </div>
-          </div>
 
-          {/* Actions */}
-          <div className="flex gap-2 mt-6">
-            <button
-              type="submit"
-              className="flex-1 bg-blue-500 text-white py-2 px-4 rounded-md hover:bg-blue-600 transition-colors font-medium"
-            >
-              Add Task
-            </button>
-            <button
-              type="button"
-              onClick={onClose}
-              className="px-4 py-2 text-gray-600 hover:text-gray-800 transition-colors"
-            >
-              Cancel
-            </button>
-          </div>
-        </form>
+            {/* Actions */}
+            <div className="flex gap-3 pt-4">
+              <button
+                type="submit"
+                className="flex-1 bg-gradient-to-r from-blue-500 to-indigo-600 text-white py-3 px-6 rounded-lg hover:from-blue-600 hover:to-indigo-700 transition-all font-semibold shadow-md hover:shadow-lg"
+              >
+                ✅ Add Task
+              </button>
+              <button
+                type="button"
+                onClick={onClose}
+                className="px-6 py-3 text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-lg transition-all"
+              >
+                Cancel
+              </button>
+            </div>
+          </form>
+        </div>
       </div>
     </div>
   );

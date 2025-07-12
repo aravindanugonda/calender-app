@@ -55,32 +55,32 @@ export function CalendarHeader() {
   }, [currentDate, viewMode, handlePrev, handleNext, handleToday, setViewMode]);
 
   return (
-    <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 bg-white">
+    <div className="paper-header flex items-center justify-between px-8 py-6">
       {/* Left side - Navigation */}
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-3">
         <Button
           variant="ghost"
           size="sm"
           onClick={handlePrev}
-          className="h-8 w-8 p-0 hover:bg-gray-100 rounded-md"
+          className="h-10 w-10 p-0 hover:bg-gray-100 rounded-full shadow-sm border border-gray-200"
         >
-          <ChevronLeft className="w-4 h-4 text-gray-600" />
+          <ChevronLeft className="w-5 h-5 text-gray-700" />
         </Button>
         
         <Button
           variant="ghost"
           size="sm"
           onClick={handleNext}
-          className="h-8 w-8 p-0 hover:bg-gray-100 rounded-md"
+          className="h-10 w-10 p-0 hover:bg-gray-100 rounded-full shadow-sm border border-gray-200"
         >
-          <ChevronRight className="w-4 h-4 text-gray-600" />
+          <ChevronRight className="w-5 h-5 text-gray-700" />
         </Button>
 
         <Button
           variant="ghost"
           size="sm"
           onClick={handleToday}
-          className="ml-2 h-8 px-3 hover:bg-gray-100 rounded-md text-sm font-medium text-gray-700"
+          className="ml-3 h-10 px-4 hover:bg-blue-50 rounded-full text-sm font-medium text-blue-600 border border-blue-200"
         >
           Today
         </Button>
@@ -88,7 +88,7 @@ export function CalendarHeader() {
 
       {/* Center - Current period */}
       <div className="flex-1 text-center">
-        <h1 className="text-lg font-medium text-gray-800">
+        <h1 className="month-title">
           {viewMode === "month" 
             ? format(currentDate, "MMMM yyyy")
             : format(currentDate, "MMM d, yyyy")
@@ -97,12 +97,12 @@ export function CalendarHeader() {
       </div>
 
       {/* Right side - View switcher */}
-      <div className="flex items-center gap-1 bg-gray-100 rounded-md p-1">
+      <div className="flex items-center gap-2 bg-gray-100 rounded-full p-1 shadow-sm">
         <Button
           variant={viewMode === "week" ? "default" : "ghost"}
           size="sm"
           onClick={() => setViewMode("week")}
-          className={`h-7 px-3 text-xs font-medium rounded-sm ${
+          className={`h-8 px-4 text-xs font-medium rounded-full transition-all duration-200 ${
             viewMode === "week" 
               ? "bg-white text-gray-900 shadow-sm" 
               : "bg-transparent text-gray-600 hover:bg-gray-50"
@@ -114,7 +114,7 @@ export function CalendarHeader() {
           variant={viewMode === "month" ? "default" : "ghost"}
           size="sm"
           onClick={() => setViewMode("month")}
-          className={`h-7 px-3 text-xs font-medium rounded-sm ${
+          className={`h-8 px-4 text-xs font-medium rounded-full transition-all duration-200 ${
             viewMode === "month" 
               ? "bg-white text-gray-900 shadow-sm" 
               : "bg-transparent text-gray-600 hover:bg-gray-50"
