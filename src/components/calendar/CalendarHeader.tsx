@@ -1,25 +1,32 @@
-
-
 import { useEffect, useCallback } from "react";
 import { useCalendarStore } from "@/store/calendar-store";
-import { format, addMonths, subMonths } from "date-fns";
+import { format, addMonths, subMonths, addWeeks, subWeeks } from "date-fns";
 import { Button } from "@/components/ui/button";
-
+import { ChevronLeft, ChevronRight } from "lucide-react";
 
 export function CalendarHeader() {
   const { currentDate, setCurrentDate, viewMode, setViewMode } = useCalendarStore();
 
   const handlePrev = useCallback(() => {
-    setCurrentDate(viewMode === "month" ? subMonths(currentDate, 1) : subMonths(currentDate, 0));
+    if (viewMode === "month") {
+      setCurrentDate(subMonths(currentDate, 1));
+    } else {
+      setCurrentDate(subWeeks(currentDate, 1));
+    }
   }, [currentDate, setCurrentDate, viewMode]);
+
   const handleNext = useCallback(() => {
-    setCurrentDate(viewMode === "month" ? addMonths(currentDate, 1) : addMonths(currentDate, 0));
+    if (viewMode === "month") {
+      setCurrentDate(addMonths(currentDate, 1));
+    } else {
+      setCurrentDate(addWeeks(currentDate, 1));
+    }
   }, [currentDate, setCurrentDate, viewMode]);
+
   const handleToday = useCallback(() => {
     setCurrentDate(new Date());
   }, [setCurrentDate]);
 
-  // Keyboard shortcuts: ←/→ for prev/next, T for today, M/W for view switch
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
@@ -48,37 +55,72 @@ export function CalendarHeader() {
   }, [currentDate, viewMode, handlePrev, handleNext, handleToday, setViewMode]);
 
   return (
-    <div className="flex items-center justify-between p-2 border-b bg-white" role="region" aria-label="Calendar navigation">
+    <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 bg-white">
+      {/* Left side - Navigation */}
       <div className="flex items-center gap-2">
-        <Button variant="ghost" size="sm" onClick={handlePrev} aria-label="Previous">
-          &lt;
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={handlePrev}
+          className="h-8 w-8 p-0 hover:bg-gray-100 rounded-md"
+        >
+          <ChevronLeft className="w-4 h-4 text-gray-600" />
         </Button>
-        <Button variant="ghost" size="sm" onClick={handleToday} aria-label="Today">
+        
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={handleNext}
+          className="h-8 w-8 p-0 hover:bg-gray-100 rounded-md"
+        >
+          <ChevronRight className="w-4 h-4 text-gray-600" />
+        </Button>
+
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={handleToday}
+          className="ml-2 h-8 px-3 hover:bg-gray-100 rounded-md text-sm font-medium text-gray-700"
+        >
           Today
         </Button>
-        <Button variant="ghost" size="sm" onClick={handleNext} aria-label="Next">
-          &gt;
-        </Button>
-        <span className="ml-4 text-lg font-semibold" aria-live="polite">
-          {format(currentDate, "MMMM yyyy")}
-        </span>
       </div>
-      <div className="flex gap-2" role="group" aria-label="View switcher">
-        <Button
-          variant={viewMode === "month" ? "default" : "ghost"}
-          size="sm"
-          onClick={() => setViewMode("month")}
-          aria-label="Month view"
-        >
-          Month
-        </Button>
+
+      {/* Center - Current period */}
+      <div className="flex-1 text-center">
+        <h1 className="text-lg font-medium text-gray-800">
+          {viewMode === "month" 
+            ? format(currentDate, "MMMM yyyy")
+            : format(currentDate, "MMM d, yyyy")
+          }
+        </h1>
+      </div>
+
+      {/* Right side - View switcher */}
+      <div className="flex items-center gap-1 bg-gray-100 rounded-md p-1">
         <Button
           variant={viewMode === "week" ? "default" : "ghost"}
           size="sm"
           onClick={() => setViewMode("week")}
-          aria-label="Week view"
+          className={`h-7 px-3 text-xs font-medium rounded-sm ${
+            viewMode === "week" 
+              ? "bg-white text-gray-900 shadow-sm" 
+              : "bg-transparent text-gray-600 hover:bg-gray-50"
+          }`}
         >
           Week
+        </Button>
+        <Button
+          variant={viewMode === "month" ? "default" : "ghost"}
+          size="sm"
+          onClick={() => setViewMode("month")}
+          className={`h-7 px-3 text-xs font-medium rounded-sm ${
+            viewMode === "month" 
+              ? "bg-white text-gray-900 shadow-sm" 
+              : "bg-transparent text-gray-600 hover:bg-gray-50"
+          }`}
+        >
+          Month
         </Button>
       </div>
     </div>

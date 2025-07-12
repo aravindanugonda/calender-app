@@ -1,6 +1,6 @@
 
 import { useCalendarStore } from "@/store/calendar-store";
-import { startOfMonth, endOfMonth, startOfWeek, endOfWeek, addDays, isSameDay, isSameMonth, format } from "date-fns";
+import { startOfMonth, endOfMonth, startOfWeek, endOfWeek, addDays, isSameDay, isSameMonth, format, isToday as isDateToday } from "date-fns";
 import { TaskList } from "../tasks/TaskList";
 import { cn } from "@/lib/utils";
 
@@ -20,28 +20,61 @@ export function MonthView() {
     return tasks.filter((task) => isSameDay(new Date(task.date), date));
   };
 
+  // Day labels
+  const dayLabels = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+
   return (
-    <div className="grid grid-cols-7 gap-1 h-full">
-      {days.map((day) => {
-        const dayTasks = getTasksForDate(day);
-        const isToday = isSameDay(day, new Date());
-        const isCurrentMonth = isSameMonth(day, currentDate);
-        return (
-          <div
-            key={day.toISOString()}
-            className={cn(
-              "border rounded-lg p-2 bg-white shadow-sm hover:shadow-md transition-shadow cursor-pointer min-h-[100px] flex flex-col",
-              isToday && "ring-2 ring-blue-500",
-              !isCurrentMonth && "bg-gray-50 text-gray-400"
-            )}
-          >
-            <div className="flex justify-between items-center mb-1">
-              <span className={cn("text-xs font-semibold", isToday && "text-blue-600")}>{format(day, "d")}</span>
-            </div>
-            <TaskList tasks={dayTasks} />
+    <div className="h-full bg-white">
+      {/* Month header */}
+      <div className="grid grid-cols-7 border-b border-gray-100">
+        {dayLabels.map((label) => (
+          <div key={label} className="p-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wide">
+            {label}
           </div>
-        );
-      })}
+        ))}
+      </div>
+
+      {/* Month grid */}
+      <div className="grid grid-cols-7 auto-rows-fr h-full">
+        {days.map((day) => {
+          const dayTasks = getTasksForDate(day);
+          const isToday = isDateToday(day);
+          const isCurrentMonth = isSameMonth(day, currentDate);
+          const isWeekend = day.getDay() === 0 || day.getDay() === 6;
+
+          return (
+            <div
+              key={day.toISOString()}
+              className={cn(
+                "border-r border-b border-gray-100 last:border-r-0 min-h-[120px] tweek-day-column group",
+                !isCurrentMonth && "bg-gray-50 text-gray-400",
+                isWeekend && "bg-gray-50",
+                isToday && "bg-blue-50/30"
+              )}
+            >
+              <div className="p-3 h-full">
+                <div className="mb-2">
+                  <div
+                    className={cn(
+                      "text-sm font-medium w-6 h-6 rounded-full flex items-center justify-center",
+                      isToday
+                        ? "bg-blue-500 text-white"
+                        : isCurrentMonth
+                        ? "text-gray-700"
+                        : "text-gray-400"
+                    )}
+                  >
+                    {format(day, "d")}
+                  </div>
+                </div>
+                <div className="overflow-y-auto tweek-scroll max-h-[calc(100%-2rem)]">
+                  <TaskList tasks={dayTasks} />
+                </div>
+              </div>
+            </div>
+          );
+        })}
+      </div>
     </div>
   );
 }

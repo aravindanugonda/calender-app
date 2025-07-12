@@ -7,6 +7,7 @@ import { MonthView } from "./MonthView";
 import { CalendarHeader } from "./CalendarHeader";
 import { TaskModal } from "../tasks/TaskModal";
 import { useGesture } from "@use-gesture/react";
+import { addWeeks, subWeeks, addMonths, subMonths } from "date-fns";
 
 export function CalendarGrid() {
   const { viewMode, currentDate, setCurrentDate } = useCalendarStore();
@@ -17,20 +18,20 @@ export function CalendarGrid() {
   // Touch gesture: swipe left/right to navigate calendar
   useGesture(
     {
-      onDrag: ({ direction }) => {
+      onDrag: ({ direction, distance }) => {
         const [x] = direction as [number, number];
-        if (Math.abs(x) > 0.5) {
+        if (Math.abs(x) > 0.5 && distance[0] > 50) {
           if (x > 0) {
             // Swipe right: previous
             setCurrentDate(viewMode === "month"
-              ? new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1)
-              : new Date(currentDate.getFullYear(), currentDate.getMonth(), currentDate.getDate() - 7)
+              ? subMonths(currentDate, 1)
+              : subWeeks(currentDate, 1)
             );
           } else {
             // Swipe left: next
             setCurrentDate(viewMode === "month"
-              ? new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 1)
-              : new Date(currentDate.getFullYear(), currentDate.getMonth(), currentDate.getDate() + 7)
+              ? addMonths(currentDate, 1)
+              : addWeeks(currentDate, 1)
             );
           }
         }
@@ -39,7 +40,7 @@ export function CalendarGrid() {
     {
       target: containerRef,
       eventOptions: { passive: false },
-      drag: { axis: "x" },
+      drag: { axis: "x", threshold: 10 },
     }
   );
 
@@ -49,7 +50,7 @@ export function CalendarGrid() {
   };
 
   return (
-    <div className="flex flex-col h-full" ref={containerRef}>
+    <div className="flex flex-col h-full bg-white rounded-lg overflow-hidden" ref={containerRef}>
       <CalendarHeader />
       <div className="flex-1 overflow-hidden">
         {viewMode === "week" ? (
@@ -66,4 +67,3 @@ export function CalendarGrid() {
     </div>
   );
 }
-// ...existing code...

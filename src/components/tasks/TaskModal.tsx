@@ -1,170 +1,142 @@
 
 import { useState } from "react";
 import { useCalendarStore } from "@/store/calendar-store";
-import { RecurringPattern, Task } from "@/types";
-import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
+import { Task } from "@/types";
 import { cn } from "@/lib/utils";
+import { X } from "lucide-react";
 
 const COLORS = ["#60a5fa", "#f87171", "#34d399", "#fbbf24", "#a78bfa", "#f472b6"];
-const PRIORITIES = ["Low", "Medium", "High"];
 
 export function TaskModal({ isOpen, onClose, selectedDate }: { isOpen: boolean; onClose: () => void; selectedDate: Date | null }) {
   const { addTask } = useCalendarStore();
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [color, setColor] = useState(COLORS[0]);
-  const [priority, setPriority] = useState(PRIORITIES[1]);
-  const [isRecurring, setIsRecurring] = useState(false);
-  const [recurringType, setRecurringType] = useState<RecurringPattern["type"]>("daily");
-  const [recurringInterval, setRecurringInterval] = useState(1);
-  const [subtasks, setSubtasks] = useState<string[]>([]);
-  const [subtaskInput, setSubtaskInput] = useState("");
 
   if (!isOpen) return null;
 
-  const handleAddSubtask = () => {
-    if (subtaskInput.trim()) {
-      setSubtasks([...subtasks, subtaskInput.trim()]);
-      setSubtaskInput("");
-    }
-  };
-
-  const handleRemoveSubtask = (idx: number) => {
-    setSubtasks(subtasks.filter((_, i) => i !== idx));
-  };
+  const isSomedayTask = selectedDate && selectedDate.getTime() === 0;
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!title.trim() || !selectedDate) return;
+    
     const newTask: Omit<Task, "id" | "createdAt" | "updatedAt"> = {
       userId: "demo", // Replace with actual user
-      title,
+      title: title.trim(),
       description,
       date: selectedDate.toISOString(),
       completed: false,
       color,
-      position: 0,
+      position: Date.now(), // Simple position based on creation time
       parentTaskId: undefined,
-      isRecurring,
-      recurringPattern: isRecurring
-        ? {
-            type: recurringType,
-            interval: recurringInterval,
-          }
-        : undefined,
-      subtasks: subtasks.map((st) => ({
-        id: "",
-        userId: "demo",
-        title: st,
-        date: selectedDate.toISOString(),
-        completed: false,
-        color,
-        position: 0,
-        parentTaskId: undefined,
-        isRecurring: false,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-      })),
+      isRecurring: false,
+      recurringPattern: undefined,
+      subtasks: [],
     };
+    
     addTask(newTask);
     onClose();
     setTitle("");
     setDescription("");
     setColor(COLORS[0]);
-    setPriority(PRIORITIES[1]);
-    setIsRecurring(false);
-    setRecurringType("daily");
-    setRecurringInterval(1);
-    setSubtasks([]);
-    setSubtaskInput("");
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50">
-      <div className="bg-white p-6 rounded shadow-lg w-full max-w-md">
-        <form onSubmit={handleSubmit} className="flex flex-col gap-3">
-          <div className="text-lg font-bold mb-2">Add Task for {selectedDate?.toDateString() || "No date"}</div>
-          <input
-            type="text"
-            placeholder="Title"
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            className="border rounded px-2 py-1"
-            required
-          />
-          <textarea
-            placeholder="Description"
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            className="border rounded px-2 py-1"
-          />
-          <div className="flex gap-2 items-center">
-            <span>Color:</span>
-            {COLORS.map((c) => (
-              <button
-                key={c}
-                type="button"
-                className={cn("w-5 h-5 rounded-full border", c === color && "ring-2 ring-blue-500")}
-                style={{ backgroundColor: c }}
-                onClick={() => setColor(c)}
-              />
-            ))}
-          </div>
-          <div className="flex gap-2 items-center">
-            <span>Priority:</span>
-            <select value={priority} onChange={(e) => setPriority(e.target.value)} className="border rounded px-2 py-1">
-              {PRIORITIES.map((p) => (
-                <option key={p} value={p}>{p}</option>
-              ))}
-            </select>
-          </div>
-          <div className="flex gap-2 items-center">
-            <Checkbox checked={isRecurring} onCheckedChange={() => setIsRecurring(!isRecurring)} />
-            <span>Recurring</span>
-            {isRecurring && (
-              <>
-                <select value={recurringType} onChange={(e) => setRecurringType(e.target.value as RecurringPattern["type"])} className="border rounded px-2 py-1">
-                  <option value="daily">Daily</option>
-                  <option value="weekly">Weekly</option>
-                  <option value="monthly">Monthly</option>
-                </select>
-                <input
-                  type="number"
-                  min={1}
-                  value={recurringInterval}
-                  onChange={(e) => setRecurringInterval(Number(e.target.value))}
-                  className="border rounded px-2 py-1 w-16"
-                />
-              </>
-            )}
-          </div>
-          <div>
-            <div className="font-semibold mb-1">Subtasks</div>
-            <div className="flex gap-2 mb-2">
+    <div className="fixed inset-0 bg-black bg-opacity-20 flex items-center justify-center z-50">
+      <div className="bg-white rounded-lg shadow-xl w-full max-w-md mx-4">
+        <div className="flex items-center justify-between p-4 border-b border-gray-100">
+          <h2 className="text-lg font-medium text-gray-900">
+            {isSomedayTask ? "Add Someday Task" : "Add Task"}
+          </h2>
+          <button
+            onClick={onClose}
+            className="p-1 hover:bg-gray-100 rounded-md transition-colors"
+          >
+            <X className="w-5 h-5 text-gray-500" />
+          </button>
+        </div>
+        
+        <form onSubmit={handleSubmit} className="p-4">
+          <div className="space-y-4">
+            {/* Task title */}
+            <div>
               <input
                 type="text"
-                placeholder="Add subtask"
-                value={subtaskInput}
-                onChange={(e) => setSubtaskInput(e.target.value)}
-                className="border rounded px-2 py-1 flex-1"
+                placeholder={isSomedayTask ? "What do you want to do someday?" : "What needs to be done?"}
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                autoFocus
+                required
               />
-          <Button size="sm" onClick={handleAddSubtask}>Add</Button>
             </div>
-            <ul className="list-disc ml-5">
-              {subtasks.map((st, idx) => (
-                <li key={idx} className="flex items-center gap-2">
-                  <span>{st}</span>
-                  <Button size="sm" variant="ghost" onClick={() => handleRemoveSubtask(idx)}>
-                    Remove
-                  </Button>
-                </li>
-              ))}
-            </ul>
+
+            {/* Description */}
+            <div>
+              <textarea
+                placeholder="Add a description (optional)"
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+                rows={3}
+              />
+            </div>
+
+            {/* Color picker */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Color
+              </label>
+              <div className="flex gap-2">
+                {COLORS.map((c) => (
+                  <button
+                    key={c}
+                    type="button"
+                    className={cn(
+                      "w-8 h-8 rounded-full border-2 transition-all",
+                      c === color ? "border-gray-400 scale-110" : "border-gray-200 hover:border-gray-300"
+                    )}
+                    style={{ backgroundColor: c }}
+                    onClick={() => setColor(c)}
+                  />
+                ))}
+              </div>
+            </div>
+
+            {/* Date display */}
+            <div className="text-sm text-gray-500">
+              {isSomedayTask ? (
+                <span className="flex items-center gap-1">
+                  <span>∞</span>
+                  Someday
+                </span>
+              ) : (
+                selectedDate?.toLocaleDateString('en-US', {
+                  weekday: 'long',
+                  year: 'numeric',
+                  month: 'long',
+                  day: 'numeric'
+                })
+              )}
+            </div>
           </div>
-          <div className="flex gap-2 mt-4">
-            <button className="px-4 py-2 rounded bg-blue-600 text-white" type="submit">Add Task</button>
-            <Button variant="ghost" onClick={onClose}>Cancel</Button>
+
+          {/* Actions */}
+          <div className="flex gap-2 mt-6">
+            <button
+              type="submit"
+              className="flex-1 bg-blue-500 text-white py-2 px-4 rounded-md hover:bg-blue-600 transition-colors font-medium"
+            >
+              Add Task
+            </button>
+            <button
+              type="button"
+              onClick={onClose}
+              className="px-4 py-2 text-gray-600 hover:text-gray-800 transition-colors"
+            >
+              Cancel
+            </button>
           </div>
         </form>
       </div>

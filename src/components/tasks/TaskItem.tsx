@@ -3,23 +3,17 @@
 import { useState } from "react";
 import { Task } from "@/types";
 import { useCalendarStore } from "@/store/calendar-store";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Button } from "@/components/ui/button";
-import { MoreHorizontal, Plus } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { GripVertical } from "lucide-react";
 
 interface TaskItemProps {
   task: Task;
-  level?: number;
 }
 
-export function TaskItem({ task, level = 0 }: TaskItemProps) {
-  const { toggleTaskComplete, updateTask } = useCalendarStore();
+export function TaskItem({ task }: TaskItemProps) {
+  const { toggleTaskComplete, updateTask, deleteTask } = useCalendarStore();
   const [isEditing, setIsEditing] = useState(false);
   const [editTitle, setEditTitle] = useState(task.title);
-
-
-  const [subtaskInput, setSubtaskInput] = useState("");
 
   const handleComplete = () => {
     toggleTaskComplete(task.id);
@@ -27,7 +21,11 @@ export function TaskItem({ task, level = 0 }: TaskItemProps) {
 
   const handleEdit = () => {
     if (isEditing) {
-      updateTask(task.id, { title: editTitle });
+      if (editTitle.trim() === "") {
+        deleteTask(task.id);
+      } else {
+        updateTask(task.id, { title: editTitle.trim() });
+      }
     }
     setIsEditing(!isEditing);
   };
@@ -42,88 +40,94 @@ export function TaskItem({ task, level = 0 }: TaskItemProps) {
     }
   };
 
-  const handleAddSubtask = () => {
-    if (subtaskInput.trim()) {
-      const newSubtask = {
-        ...task,
-        id: crypto.randomUUID(),
-        title: subtaskInput.trim(),
-        parentTaskId: task.id,
-        subtasks: [],
+  // Extract emoji/sticker from the beginning of title
+  const getTaskDisplay = (title: string) => {
+    const emojiRegex = /^(\p{Emoji}|\p{Extended_Pictographic})\s*/u;
+    const match = title.match(emojiRegex);
+    
+    if (match) {
+      return {
+        sticker: match[0].trim(),
+        text: title.replace(emojiRegex, "").trim()
       };
-      updateTask(task.id, {
-        subtasks: [...(task.subtasks || []), newSubtask],
-      });
-      setSubtaskInput("");
     }
+    
+    return { sticker: null, text: title };
   };
 
+  const { sticker, text } = getTaskDisplay(task.title);
+
   return (
-    <div className={cn("group", level > 0 && "ml-6")}> 
-      <div className="flex items-center gap-2 p-2 rounded hover:bg-gray-50">
-        <Checkbox
-          checked={task.completed}
-          onCheckedChange={handleComplete}
-          className="shrink-0"
-        />
-        <div
-          className="w-3 h-3 rounded-full shrink-0"
-          style={{ backgroundColor: task.color }}
-        />
-        {isEditing ? (
-          <input
-            value={editTitle}
-            onChange={(e) => setEditTitle(e.target.value)}
-            onBlur={handleEdit}
-            onKeyDown={handleKeyPress}
-            className="flex-1 px-1 py-0.5 text-sm border rounded"
-            autoFocus
-          />
-        ) : (
-          <span
-            className={cn(
-              "flex-1 text-sm cursor-pointer",
-              task.completed && "line-through text-gray-500"
-            )}
-            onClick={() => setIsEditing(true)}
-          >
-            {task.title}
-          </span>
-        )}
-        <div className="opacity-0 group-hover:opacity-100 transition-opacity flex gap-1">
-          <input
-            type="text"
-            value={subtaskInput}
-            onChange={(e) => setSubtaskInput(e.target.value)}
-            placeholder="Add subtask"
-            className="border rounded px-1 py-0.5 text-xs w-24"
-            onKeyDown={(e) => {
-              if (e.key === "Enter") handleAddSubtask();
-            }}
-          />
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={handleAddSubtask}
-          >
-            <Plus className="w-3 h-3" />
-          </Button>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => {/* More options */}}
-          >
-            <MoreHorizontal className="w-3 h-3" />
-          </Button>
+    <div
+      className={cn(
+        "group tweek-task rounded-md p-2 mb-1 cursor-pointer transition-all duration-200",
+        task.completed && "opacity-60"
+      )}
+    >
+      <div className="flex items-center gap-2">
+        {/* Drag handle */}
+        <button
+          className="opacity-0 group-hover:opacity-100 transition-opacity p-1 hover:bg-gray-100 rounded"
+        >
+          <GripVertical className="w-3 h-3 text-gray-400" />
+        </button>
+
+        {/* Checkbox */}
+        <button
+          onClick={handleComplete}
+          className={cn(
+            "w-4 h-4 rounded border-2 flex items-center justify-center transition-all duration-200",
+            task.completed
+              ? "bg-blue-500 border-blue-500"
+              : "border-gray-300 hover:border-blue-400"
+          )}
+        >
+          {task.completed && (
+            <svg className="w-2.5 h-2.5 text-white" fill="currentColor" viewBox="0 0 20 20">
+              <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+            </svg>
+          )}
+        </button>
+
+        {/* Task content */}
+        <div className="flex-1 flex items-center gap-2">
+          {/* Color indicator */}
+          {task.color && (
+            <div
+              className="w-2 h-2 rounded-full shrink-0"
+              style={{ backgroundColor: task.color }}
+            />
+          )}
+
+          {/* Sticker/emoji */}
+          {sticker && (
+            <span className="tweek-sticker text-sm">{sticker}</span>
+          )}
+
+          {/* Task text */}
+          {isEditing ? (
+            <input
+              value={editTitle}
+              onChange={(e) => setEditTitle(e.target.value)}
+              onBlur={handleEdit}
+              onKeyDown={handleKeyPress}
+              className="flex-1 px-1 py-0.5 text-sm bg-transparent border-none outline-none focus:ring-0"
+              autoFocus
+              placeholder="What needs to be done?"
+            />
+          ) : (
+            <span
+              className={cn(
+                "flex-1 text-sm cursor-text select-none",
+                task.completed && "line-through text-gray-500"
+              )}
+              onClick={() => setIsEditing(true)}
+            >
+              {text || "What needs to be done?"}
+            </span>
+          )}
         </div>
       </div>
-      {task.subtasks && task.subtasks.length > 0 && (
-        <div className="mt-1">
-          {task.subtasks.map((subtask) => (
-            <TaskItem key={subtask.id} task={subtask} level={level + 1} />
-          ))}
-        </div>
-      )}
     </div>
   );
 }

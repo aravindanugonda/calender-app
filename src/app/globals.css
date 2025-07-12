@@ -1,26 +1,84 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #fafafa;
+  --foreground: #2d3748;
+  --tweek-primary: #3b82f6;
+  --tweek-secondary: #f8fafc;
+  --tweek-accent: #e2e8f0;
+  --tweek-muted: #94a3b8;
+  --tweek-border: #e2e8f0;
+  --tweek-paper: #ffffff;
+  --tweek-shadow: rgba(0, 0, 0, 0.04);
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+/* Tweek-inspired styles */
+.tweek-paper {
+  background: var(--tweek-paper);
+  border: 1px solid var(--tweek-border);
+  box-shadow: 0 1px 3px var(--tweek-shadow);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+.tweek-task {
+  background: var(--tweek-paper);
+  border: 1px solid transparent;
+  transition: all 0.2s ease;
+}
+
+.tweek-task:hover {
+  border-color: var(--tweek-accent);
+  box-shadow: 0 2px 8px var(--tweek-shadow);
+}
+
+.tweek-day-column {
+  background: var(--tweek-paper);
+  border: 1px solid var(--tweek-border);
+  min-height: 400px;
+}
+
+.tweek-day-column:hover {
+  background: var(--tweek-secondary);
+}
+
+/* Custom scrollbar for Tweek look */
+.tweek-scroll::-webkit-scrollbar {
+  width: 4px;
+}
+
+.tweek-scroll::-webkit-scrollbar-track {
+  background: var(--tweek-secondary);
+}
+
+.tweek-scroll::-webkit-scrollbar-thumb {
+  background: var(--tweek-accent);
+  border-radius: 2px;
+}
+
+.tweek-scroll::-webkit-scrollbar-thumb:hover {
+  background: var(--tweek-muted);
+}
+
+/* Task stickers/emoji support */
+.tweek-sticker {
+  display: inline-block;
+  font-size: 14px;
+  margin-right: 4px;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-geist-sans), -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  line-height: 1.6;
+}
+
+/* Minimal focus styles */
+*:focus {
+  outline: 2px solid var(--tweek-primary);
+  outline-offset: 2px;
+}
+
+/* Smooth transitions */
+* {
+  transition: background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
 }

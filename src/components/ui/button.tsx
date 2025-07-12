@@ -1,12 +1,22 @@
-// ...existing code...
+import { cn } from "@/lib/utils";
+
 interface ButtonProps {
   children: React.ReactNode;
   onClick?: () => void;
   variant?: "ghost" | "default";
   size?: "sm" | "md" | "lg";
+  className?: string;
+  type?: "button" | "submit" | "reset";
 }
 
-export function Button({ children, onClick, variant = "default", size = "md" }: ButtonProps) {
+export function Button({ 
+  children, 
+  onClick, 
+  variant = "default", 
+  size = "md", 
+  className = "",
+  type = "button"
+}: ButtonProps) {
   const base = "rounded focus:outline-none transition-colors";
   const variantClass = variant === "ghost"
     ? "bg-transparent text-gray-700 hover:bg-gray-100"
@@ -16,8 +26,13 @@ export function Button({ children, onClick, variant = "default", size = "md" }: 
     : size === "lg"
     ? "px-4 py-2 text-lg"
     : "px-2 py-1 text-sm";
+  
   return (
-    <button onClick={onClick} className={`${base} ${variantClass} ${sizeClass}`}>
+    <button 
+      type={type}
+      onClick={onClick} 
+      className={cn(base, variantClass, sizeClass, className)}
+    >
       {children}
     </button>
   );
