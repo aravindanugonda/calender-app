@@ -104,7 +104,6 @@ export const useCalendarStore = create<CalendarStore>((set, get) => ({
   },
 
   updateTask: async (id, updates) => {
-    const state = get();
     try {
       const response = await fetch(`/api/tasks?id=${id}`, {
         method: 'PUT',
@@ -127,7 +126,7 @@ export const useCalendarStore = create<CalendarStore>((set, get) => ({
       }));
 
       // Refresh tasks to ensure consistency
-      await get().fetchTasks(state.currentDate);
+      await get().fetchTasks(get().currentDate);
     } catch (error) {
       console.error('Error updating task:', error);
       throw error; // Re-throw to handle in the UI
