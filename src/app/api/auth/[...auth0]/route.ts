@@ -4,12 +4,12 @@
 
 import { NextRequest } from "next/server";
 
-export async function GET(req: NextRequest) {
+export async function GET(_req: NextRequest) {
   // This is a minimal implementation that will be overridden
   // by the Auth0 middleware, but it satisfies Next.js requirements
   return new Response("Auth route", { status: 200 });
 }
 
-export async function POST(req: NextRequest) {
+export async function POST(_req: NextRequest) {
   return new Response("Auth route", { status: 200 });
 }
