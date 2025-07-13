@@ -1,15 +1,20 @@
 "use client";
 import AuthStatus from "@/components/ui/AuthStatus";
 import { CalendarGrid } from "@/components/calendar/CalendarGrid";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { format, addWeeks, subWeeks, addMonths, subMonths } from "date-fns";
 import { useCalendarStore } from "@/store/calendar-store";
 import { MonthYearPicker } from "@/components/calendar/MonthYearPicker";
 import { Button } from "@/components/ui/button";
 
 export default function Home() {
-  const { currentDate, setCurrentDate, viewType, setViewType } = useCalendarStore();
+  const { currentDate, setCurrentDate, viewType, setViewType, fetchTasks } = useCalendarStore();
   const [pickerType, setPickerType] = useState<'month' | 'year' | null>(null);
+
+  useEffect(() => {
+    // Initial task fetch
+    fetchTasks(currentDate);
+  }, []); // Only run once on mount
 
   const handlePrevious = () => {
     if (viewType === 'week') {

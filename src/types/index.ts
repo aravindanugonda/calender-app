@@ -28,3 +28,12 @@ export interface CalendarState {
   viewMode: "week" | "month";
   isLoading: boolean;
 }
+
+export interface User {
+  id: string;
+  auth0Id: string;
+  email: string;
+  name: string | null;
+  createdAt: string | null;
+  updatedAt: string | null;
+}

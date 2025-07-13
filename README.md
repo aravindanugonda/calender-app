@@ -1,16 +1,21 @@
 # Weekly Planner & To-Do List App
 
-A minimal weekly planner and to-do list app inspired by Tweek. Built with Next.js 15, TypeScript, and Tailwind CSS.
+A modern, feature-rich weekly planner and to-do list app inspired by Tweek. Built with Next.js 15, TypeScript, and Tailwind CSS.
 
 ## Features
 
 - 📅 Week and Month view options
 - ✅ Task management with checkboxes
-- 📱 Responsive design
+- 🎨 Task color coding and categorization
+- 📝 Rich task descriptions
+- � Recurring tasks support
+- �📱 Responsive design
 - 🎯 Today focus button
 - 📆 Easy date navigation
 - 🔒 Auth0 authentication
 - 💾 Data persistence with DrizzleORM
+- 🌓 Light/Dark theme support
+- 🔍 Task search and filtering
 
 ## Tech Stack
 

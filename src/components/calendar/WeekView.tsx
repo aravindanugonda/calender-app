@@ -17,7 +17,20 @@ export function WeekView({ onDateClick }: WeekViewProps) {
   const weekDays = Array.from({ length: 7 }, (_, i) => addDays(weekStart, i));
 
   const getTasksForDate = (date: Date) => {
-    return tasks.filter((task) => isSameDay(new Date(task.date), date));
+    console.log('Getting tasks for date:', date);
+    const dayTasks = tasks.filter((task) => {
+      try {
+        const taskDate = new Date(task.date);
+        const matches = isSameDay(taskDate, date);
+        console.log('Task:', task.title, 'Date:', taskDate, 'Matches:', matches);
+        return matches;
+      } catch (e) {
+        console.error("Invalid date in task:", task);
+        return false;
+      }
+    });
+    console.log('Found tasks:', dayTasks.length);
+    return dayTasks;
   };
 
   // Get tasks that don't have a specific date (someday tasks)

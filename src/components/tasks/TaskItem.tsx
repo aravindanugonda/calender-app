@@ -4,123 +4,84 @@ import { useState } from "react";
 import { Task } from "@/types";
 import { useCalendarStore } from "@/store/calendar-store";
 import { cn } from "@/lib/utils";
-import { GripVertical } from "lucide-react";
+import { taskColors } from "@/lib/colors";
+import { Pencil, Circle, CheckCircle2 } from "lucide-react";
+import { TaskModal } from "./TaskModal";
 
 interface TaskItemProps {
   task: Task;
 }
 
 export function TaskItem({ task }: TaskItemProps) {
-  const { toggleTaskComplete, updateTask, deleteTask } = useCalendarStore();
-  const [isEditing, setIsEditing] = useState(false);
-  const [editTitle, setEditTitle] = useState(task.title);
-
-  const handleComplete = () => {
-    toggleTaskComplete(task.id);
-  };
-
-  const handleEdit = () => {
-    if (isEditing) {
-      if (editTitle.trim() === "") {
-        deleteTask(task.id);
-      } else {
-        updateTask(task.id, { title: editTitle.trim() });
-      }
-    }
-    setIsEditing(!isEditing);
-  };
-
-  const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === "Enter") {
-      handleEdit();
-    }
-    if (e.key === "Escape") {
-      setEditTitle(task.title);
-      setIsEditing(false);
-    }
-  };
-
-  // Extract emoji/sticker from the beginning of title
-  const getTaskDisplay = (title: string) => {
-    const emojiRegex = /^(\p{Emoji}|\p{Extended_Pictographic})\s*/u;
-    const match = title.match(emojiRegex);
-    
-    if (match) {
-      return {
-        sticker: match[0].trim(),
-        text: title.replace(emojiRegex, "").trim()
-      };
-    }
-    
-    return { sticker: null, text: title };
-  };
-
-  const { sticker, text } = getTaskDisplay(task.title);
+  const { toggleTaskComplete } = useCalendarStore();
+  const [showEditModal, setShowEditModal] = useState(false);
+  
+  const color = taskColors[task.color as keyof typeof taskColors] || taskColors.default;
 
   return (
-    <div
-      className={cn(
-        "group task-sticker cursor-pointer transition-all duration-200 bg-white hover:shadow-md",
-        task.completed && "completed opacity-60"
-      )}
-      style={{ '--task-color': task.color || '#4f46e5' } as React.CSSProperties}
-    >
-      <div className="flex items-center gap-3">
-        {/* Drag handle */}
-        <button
-          className="opacity-0 group-hover:opacity-100 transition-opacity p-1 hover:bg-gray-100 rounded-sm"
-        >
-          <GripVertical className="w-3 h-3 text-gray-400" />
-        </button>
+    <>
+      <div 
+        className={cn(
+          "group px-3 py-2 rounded-lg transition-all",
+          "hover:shadow-sm hover:translate-y-[-1px]",
+          task.completed && "opacity-75"
+        )}
+        style={{ 
+          backgroundColor: color.bg,
+          borderLeft: `3px solid ${color.border}`
+        }}
+      >
+        <div className="flex items-center gap-2">
+          {/* Checkbox */}
+          <button
+            onClick={() => toggleTaskComplete(task.id)}
+            className="shrink-0 focus:outline-none"
+          >
+            {task.completed ? (
+              <CheckCircle2 className="w-5 h-5 text-blue-500" />
+            ) : (
+              <Circle className="w-5 h-5 text-gray-400 group-hover:text-gray-600" />
+            )}
+          </button>
 
-        {/* Checkbox */}
-        <button
-          onClick={handleComplete}
-          className={cn(
-            "w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all duration-200 shrink-0",
-            task.completed
-              ? "bg-green-500 border-green-500 shadow-sm"
-              : "border-gray-300 hover:border-blue-400 hover:bg-blue-50"
-          )}
-        >
-          {task.completed && (
-            <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
-              <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-            </svg>
-          )}
-        </button>
+          {/* Task title */}
+          <span
+            className={cn(
+              "flex-1 text-sm transition-colors",
+              task.completed ? "line-through text-gray-500" : `text-${color.text}`,
+              "cursor-default"
+            )}
+          >
+            {task.title}
+          </span>
 
-        {/* Task content */}
-        <div className="flex-1 flex items-center gap-2 min-w-0">
-          {/* Sticker/emoji */}
-          {sticker && (
-            <span className="tweek-sticker text-lg shrink-0">{sticker}</span>
-          )}
-
-          {/* Task text */}
-          {isEditing ? (
-            <input
-              value={editTitle}
-              onChange={(e) => setEditTitle(e.target.value)}
-              onBlur={handleEdit}
-              onKeyDown={handleKeyPress}
-              className="flex-1 px-2 py-1 text-sm bg-white border border-gray-200 rounded-md outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-400"
-              autoFocus
-              placeholder="What needs to be done?"
-            />
-          ) : (
-            <span
-              className={cn(
-                "flex-1 text-sm cursor-text select-none font-medium",
-                task.completed && "line-through text-gray-500"
-              )}
-              onClick={() => setIsEditing(true)}
-            >
-              {text || "What needs to be done?"}
-            </span>
-          )}
+          {/* Edit button */}
+          <button
+            onClick={() => setShowEditModal(true)}
+            className="shrink-0 opacity-0 group-hover:opacity-100 transition-opacity p-1 hover:bg-black/5 rounded"
+          >
+            <Pencil className="w-4 h-4 text-gray-400" />
+          </button>
         </div>
+
+        {/* Description preview */}
+        {task.description && (
+          <div className="mt-1 text-xs text-gray-500 pl-7">
+            {task.description.length > 100
+              ? task.description.slice(0, 100) + '...'
+              : task.description}
+          </div>
+        )}
       </div>
-    </div>
+
+      {/* Edit Modal */}
+      <TaskModal
+        isOpen={showEditModal}
+        onClose={() => setShowEditModal(false)}
+        selectedDate={new Date(task.date)}
+        task={task}
+        mode="edit"
+      />
+    </>
   );
 }

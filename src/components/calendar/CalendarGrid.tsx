@@ -1,247 +1,103 @@
 "use client";
 
-import { format, isSameDay, eachDayOfInterval, startOfMonth, endOfMonth, startOfWeek, endOfWeek, isToday } from "date-fns";
+import { useState, useEffect } from "react";
 import { useCalendarStore } from "@/store/calendar-store";
-import { useState } from "react";
+import { WeekView } from "./WeekView";
+import { MonthView } from "./MonthView";
+import { CustomView } from "./CustomView";
+import { startOfWeek, endOfWeek, startOfMonth, endOfMonth } from "date-fns";
+import { CalendarHeader } from "./CalendarHeader";
+import { TaskModal } from "../tasks/TaskModal";
+import { Loading } from "@/components/ui/loading";
+import { Toast } from "@/components/ui/toast";
 
-interface Task {
-  id: string;
-  title: string;
-  date: Date | null;
-  completed: boolean;
+interface ErrorResponse {
+  error: string;
 }
 
-export const CalendarGrid = () => {
-  const { currentDate, viewType } = useCalendarStore();
-  const [tasks, setTasks] = useState<Task[]>([]);
-  const [newTask, setNewTask] = useState("");
+export function CalendarGrid() {
+  const { viewType, currentDate, setTasks, setLoading, isLoading } = useCalendarStore();
+  const [isTaskModalOpen, setIsTaskModalOpen] = useState(false);
+  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
-  // Get weekday tasks (Monday-Friday)
-  const weekdayTasks = tasks.filter(task => {
-    if (!task.date) return false;
-    const day = task.date.getDay();
-    return day >= 1 && day <= 5;
-  });
+  useEffect(() => {
+    console.log('Loading tasks for:', currentDate, viewType);
+    loadTasks();
+  }, [currentDate, viewType]);
 
-  // Get weekend tasks (Saturday-Sunday)
-  const weekendTasks = tasks.filter(task => {
-    if (!task.date) return false;
-    const day = task.date.getDay();
-    return day === 0 || day === 6;
-  });
+  const loadTasks = async () => {
+    setLoading(true);
+    setError(null);
+    
+    try {
+      // Add date range to the query
+      const startDate = viewType === 'week'
+        ? startOfWeek(currentDate, { weekStartsOn: 1 }).toISOString()
+        : startOfMonth(currentDate).toISOString();
+      
+      const endDate = viewType === 'week'
+        ? endOfWeek(currentDate, { weekStartsOn: 1 }).toISOString()
+        : endOfMonth(currentDate).toISOString();
 
-  // Get someday tasks (no date)
-  const somedayTasks = tasks.filter(task => !task.date);
-
-  const handleAddTask = (date: Date | null) => {
-    if (!newTask.trim()) return;
-
-    const task: Task = {
-      id: Math.random().toString(),
-      title: newTask,
-      date,
-      completed: false
-    };
-
-    setTasks([...tasks, task]);
-    setNewTask("");
+      const response = await fetch(`/api/tasks?startDate=${startDate}&endDate=${endDate}`);
+      if (!response.ok) {
+        const errorData = await response.json() as ErrorResponse;
+        throw new Error(errorData.error || 'Failed to load tasks');
+      }
+      const data = await response.json();
+      setTasks(data);
+    } catch (error) {
+      console.error("Error loading tasks:", error);
+      setError(error instanceof Error ? error.message : 'Failed to load tasks');
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const toggleTaskCompletion = (taskId: string) => {
-    setTasks(tasks.map(task => 
-      task.id === taskId ? { ...task, completed: !task.completed } : task
-    ));
+  const handleDateClick = (date: Date) => {
+    setSelectedDate(date);
+    setIsTaskModalOpen(true);
   };
-
-  if (viewType === 'week') {
-    return (
-      <div className="h-full grid grid-cols-1 gap-6">
-        {/* Weekday Section (Monday-Friday) */}
-        <div className="space-y-4">
-          <h2 className="text-lg font-semibold">This Week</h2>
-          <div className="space-y-2">
-            {Array.from({ length: 5 }).map((_, index) => {
-              const date = new Date(currentDate);
-              date.setDate(date.getDate() - date.getDay() + index + 1);
-              
-              return (
-                <div key={index} className="flex items-start gap-4">
-                  <div className={`w-24 pt-2 ${isToday(date) ? 'text-blue-600 font-semibold' : ''}`}>
-                    <div className="text-sm">{format(date, "EEEE")}</div>
-                    <div className="text-sm text-gray-400">{format(date, "MMM d")}</div>
-                  </div>
-                  <div className="flex-1">
-                    <div className="space-y-2">
-                      {weekdayTasks
-                        .filter(task => task.date && isSameDay(task.date, date))
-                        .map(task => (
-                          <div key={task.id} className="flex items-center gap-2">
-                            <input
-                              type="checkbox"
-                              checked={task.completed}
-                              onChange={() => toggleTaskCompletion(task.id)}
-                              className="rounded border-gray-300"
-                            />
-                            <span className={task.completed ? "line-through text-gray-400" : ""}>
-                              {task.title}
-                            </span>
-                          </div>
-                        ))}
-                    </div>
-                    <input
-                      type="text"
-                      placeholder="Add a task..."
-                      value={newTask}
-                      onChange={(e) => setNewTask(e.target.value)}
-                      onKeyPress={(e) => e.key === "Enter" && handleAddTask(date)}
-                      className="mt-2 w-full p-2 text-sm border-0 border-b border-transparent hover:border-gray-200 focus:border-blue-500 focus:ring-0"
-                    />
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-
-        {/* Weekend Section */}
-        <div className="space-y-4">
-          <h2 className="text-lg font-semibold">Weekend</h2>
-          <div className="space-y-2">
-            {Array.from({ length: 2 }).map((_, index) => {
-              const date = new Date(currentDate);
-              date.setDate(date.getDate() - date.getDay() + index + 6);
-              
-              return (
-                <div key={index} className="flex items-start gap-4">
-                  <div className={`w-24 pt-2 ${isToday(date) ? 'text-blue-600 font-semibold' : ''}`}>
-                    <div className="text-sm">{format(date, "EEEE")}</div>
-                    <div className="text-sm text-gray-400">{format(date, "MMM d")}</div>
-                  </div>
-                  <div className="flex-1">
-                    <div className="space-y-2">
-                      {weekendTasks
-                        .filter(task => task.date && isSameDay(task.date, date))
-                        .map(task => (
-                          <div key={task.id} className="flex items-center gap-2">
-                            <input
-                              type="checkbox"
-                              checked={task.completed}
-                              onChange={() => toggleTaskCompletion(task.id)}
-                              className="rounded border-gray-300"
-                            />
-                            <span className={task.completed ? "line-through text-gray-400" : ""}>
-                              {task.title}
-                            </span>
-                          </div>
-                        ))}
-                    </div>
-                    <input
-                      type="text"
-                      placeholder="Add a task..."
-                      value={newTask}
-                      onChange={(e) => setNewTask(e.target.value)}
-                      onKeyPress={(e) => e.key === "Enter" && handleAddTask(date)}
-                      className="mt-2 w-full p-2 text-sm border-0 border-b border-transparent hover:border-gray-200 focus:border-blue-500 focus:ring-0"
-                    />
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-
-        {/* Someday Section */}
-        <div className="space-y-4">
-          <h2 className="text-lg font-semibold">Someday</h2>
-          <div className="space-y-2">
-            {somedayTasks.map(task => (
-              <div key={task.id} className="flex items-center gap-2">
-                <input
-                  type="checkbox"
-                  checked={task.completed}
-                  onChange={() => toggleTaskCompletion(task.id)}
-                  className="rounded border-gray-300"
-                />
-                <span className={task.completed ? "line-through text-gray-400" : ""}>
-                  {task.title}
-                </span>
-              </div>
-            ))}
-            <input
-              type="text"
-              placeholder="Add a task..."
-              value={newTask}
-              onChange={(e) => setNewTask(e.target.value)}
-              onKeyPress={(e) => e.key === "Enter" && handleAddTask(null)}
-              className="mt-2 w-full p-2 text-sm border-0 border-b border-transparent hover:border-gray-200 focus:border-blue-500 focus:ring-0"
-            />
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  // Month view
-  const monthStart = startOfMonth(currentDate);
-  const monthEnd = endOfMonth(currentDate);
-  const calendarStart = startOfWeek(monthStart, { weekStartsOn: 1 });
-  const calendarEnd = endOfWeek(monthEnd, { weekStartsOn: 1 });
-  const days = eachDayOfInterval({ start: calendarStart, end: calendarEnd });
 
   return (
-    <div className="h-full">
-      {/* Weekday headers */}
-      <div className="grid grid-cols-7 gap-px mb-px">
-        {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map(day => (
-          <div key={day} className="p-2 text-sm text-gray-500 text-center">
-            {day}
-          </div>
-        ))}
-      </div>
+    <div className="flex flex-col h-full bg-gray-50">
+      <CalendarHeader />
+      
+      {isLoading ? (
+        <div className="flex-1 flex items-center justify-center">
+          <Loading />
+        </div>
+      ) : (
+        <div className="flex-1 overflow-hidden p-4">
+          {viewType === "week" && (
+            <WeekView onDateClick={handleDateClick} />
+          )}
+          {viewType === "month" && (
+            <MonthView onDateClick={handleDateClick} />
+          )}
+          {viewType === "custom" && (
+            <CustomView />
+          )}
+        </div>
+      )}
 
-      {/* Calendar grid */}
-      <div className="grid grid-cols-7 gap-px bg-gray-200">
-        {days.map(date => {
-          const dayTasks = tasks.filter(task => task.date && isSameDay(task.date, date));
-          const isCurrentMonth = date.getMonth() === currentDate.getMonth();
-          
-          return (
-            <div 
-              key={date.toString()} 
-              className={`min-h-[100px] p-2 bg-white ${
-                !isCurrentMonth ? 'text-gray-400' : ''
-              } ${isToday(date) ? 'bg-blue-50' : ''}`}
-            >
-              <div className="text-sm mb-1">
-                {format(date, "d")}
-              </div>
-              <div className="space-y-1">
-                {dayTasks.map(task => (
-                  <div key={task.id} className="flex items-center gap-1 text-sm">
-                    <input
-                      type="checkbox"
-                      checked={task.completed}
-                      onChange={() => toggleTaskCompletion(task.id)}
-                      className="w-3 h-3 rounded border-gray-300"
-                    />
-                    <span className={task.completed ? "line-through text-gray-400" : ""}>
-                      {task.title}
-                    </span>
-                  </div>
-                ))}
-                <input
-                  type="text"
-                  placeholder="+"
-                  value={newTask}
-                  onChange={(e) => setNewTask(e.target.value)}
-                  onKeyPress={(e) => e.key === "Enter" && handleAddTask(date)}
-                  className="w-full text-sm border-0 border-b border-transparent hover:border-gray-200 focus:border-blue-500 focus:ring-0"
-                />
-              </div>
-            </div>
-          );
-        })}
-      </div>
+      <TaskModal
+        isOpen={isTaskModalOpen}
+        onClose={() => {
+          setIsTaskModalOpen(false);
+          setSelectedDate(null);
+        }}
+        selectedDate={selectedDate}
+      />
+
+      {error && (
+        <Toast
+          message={error}
+          type="error"
+          onClose={() => setError(null)}
+        />
+      )}
     </div>
   );
-};
+}
