@@ -5,23 +5,23 @@ import { Button } from "@/components/ui/button";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
 export function CalendarHeader() {
-  const { currentDate, setCurrentDate, viewMode, setViewMode } = useCalendarStore();
+  const { currentDate, setCurrentDate, viewType, setViewType } = useCalendarStore();
 
   const handlePrev = useCallback(() => {
-    if (viewMode === "month") {
+    if (viewType === "month") {
       setCurrentDate(subMonths(currentDate, 1));
     } else {
       setCurrentDate(subWeeks(currentDate, 1));
     }
-  }, [currentDate, setCurrentDate, viewMode]);
+  }, [currentDate, setCurrentDate, viewType]);
 
   const handleNext = useCallback(() => {
-    if (viewMode === "month") {
+    if (viewType === "month") {
       setCurrentDate(addMonths(currentDate, 1));
     } else {
       setCurrentDate(addWeeks(currentDate, 1));
     }
-  }, [currentDate, setCurrentDate, viewMode]);
+  }, [currentDate, setCurrentDate, viewType]);
 
   const handleToday = useCallback(() => {
     setCurrentDate(new Date());
@@ -41,10 +41,10 @@ export function CalendarHeader() {
           handleToday();
           break;
         case "m":
-          setViewMode("month");
+          setViewType("month");
           break;
         case "w":
-          setViewMode("week");
+          setViewType("week");
           break;
         default:
           break;
@@ -52,7 +52,7 @@ export function CalendarHeader() {
     };
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [currentDate, viewMode, handlePrev, handleNext, handleToday, setViewMode]);
+  }, [currentDate, viewType, handlePrev, handleNext, handleToday, setViewType]);
 
   return (
     <div className="paper-header flex items-center justify-between px-8 py-6">
@@ -62,7 +62,7 @@ export function CalendarHeader() {
           variant="ghost"
           size="sm"
           onClick={handlePrev}
-          className="h-10 w-10 p-0 hover:bg-gray-100 rounded-full shadow-sm border border-gray-200"
+          className="h-10 w-10 p-0 hover:bg-gray-100 rounded-full shadow-sm border border-gray-200 flex items-center justify-center"
         >
           <ChevronLeft className="w-5 h-5 text-gray-700" />
         </Button>
@@ -71,11 +71,11 @@ export function CalendarHeader() {
           variant="ghost"
           size="sm"
           onClick={handleNext}
-          className="h-10 w-10 p-0 hover:bg-gray-100 rounded-full shadow-sm border border-gray-200"
+          className="h-10 w-10 p-0 hover:bg-gray-100 rounded-full shadow-sm border border-gray-200 flex items-center justify-center"
         >
           <ChevronRight className="w-5 h-5 text-gray-700" />
         </Button>
-
+        
         <Button
           variant="ghost"
           size="sm"
@@ -89,7 +89,7 @@ export function CalendarHeader() {
       {/* Center - Current period */}
       <div className="flex-1 text-center">
         <h1 className="month-title">
-          {viewMode === "month" 
+          {viewType === "month" 
             ? format(currentDate, "MMMM yyyy")
             : format(currentDate, "MMM d, yyyy")
           }
@@ -99,11 +99,11 @@ export function CalendarHeader() {
       {/* Right side - View switcher */}
       <div className="flex items-center gap-2 bg-gray-100 rounded-full p-1 shadow-sm">
         <Button
-          variant={viewMode === "week" ? "default" : "ghost"}
+          variant={viewType === "week" ? "default" : "ghost"}
           size="sm"
-          onClick={() => setViewMode("week")}
+          onClick={() => setViewType("week")}
           className={`h-8 px-4 text-xs font-medium rounded-full transition-all duration-200 ${
-            viewMode === "week" 
+            viewType === "week" 
               ? "bg-white text-gray-900 shadow-sm" 
               : "bg-transparent text-gray-600 hover:bg-gray-50"
           }`}
@@ -111,11 +111,11 @@ export function CalendarHeader() {
           Week
         </Button>
         <Button
-          variant={viewMode === "month" ? "default" : "ghost"}
+          variant={viewType === "month" ? "default" : "ghost"}
           size="sm"
-          onClick={() => setViewMode("month")}
+          onClick={() => setViewType("month")}
           className={`h-8 px-4 text-xs font-medium rounded-full transition-all duration-200 ${
-            viewMode === "month" 
+            viewType === "month" 
               ? "bg-white text-gray-900 shadow-sm" 
               : "bg-transparent text-gray-600 hover:bg-gray-50"
           }`}

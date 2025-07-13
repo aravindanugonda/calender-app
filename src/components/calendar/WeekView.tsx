@@ -17,19 +17,15 @@ export function WeekView({ onDateClick }: WeekViewProps) {
   const weekDays = Array.from({ length: 7 }, (_, i) => addDays(weekStart, i));
 
   const getTasksForDate = (date: Date) => {
-    console.log('Getting tasks for date:', date);
     const dayTasks = tasks.filter((task) => {
       try {
         const taskDate = new Date(task.date);
-        const matches = isSameDay(taskDate, date);
-        console.log('Task:', task.title, 'Date:', taskDate, 'Matches:', matches);
-        return matches;
+        return isSameDay(taskDate, date);
       } catch {
         console.error("Invalid date in task:", task);
         return false;
       }
     });
-    console.log('Found tasks:', dayTasks.length);
     return dayTasks;
   };
 
@@ -123,10 +119,10 @@ export function WeekView({ onDateClick }: WeekViewProps) {
 
       {/* Someday column */}
       <div className="w-64 border-l-2 border-gray-200 bg-gradient-to-b from-purple-50 to-indigo-50">
-        <div className="weekday-header text-center border-b border-gray-200">
-          <div className="font-semibold text-purple-700">Someday</div>
-          <div className="text-xs text-purple-500 mt-1">Future Plans</div>
-          <div className="text-2xl mt-2">∞</div>
+        <div className="weekday-header text-center border-b border-gray-200 py-4">
+          <div className="font-semibold text-purple-700 whitespace-nowrap">Someday</div>
+          <div className="text-xs text-purple-500 mt-1 whitespace-nowrap">Future Plans</div>
+          <div className="text-2xl mt-2 whitespace-nowrap">∞</div>
         </div>
         <div className="p-4 h-full overflow-y-auto tweek-scroll">
           <TaskList tasks={somedayTasks} />

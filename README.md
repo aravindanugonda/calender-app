@@ -4,18 +4,18 @@ A modern, feature-rich weekly planner and to-do list app inspired by Tweek. Buil
 
 ## Features
 
-- 📅 Week and Month view options
+- 📅 Week and Month view options with intuitive toggle
 - ✅ Task management with checkboxes
 - 🎨 Task color coding and categorization
 - 📝 Rich task descriptions
-- � Recurring tasks support
-- �📱 Responsive design
-- 🎯 Today focus button
-- 📆 Easy date navigation
+- 🔄 Recurring tasks support
+- 📱 Responsive design
+- 🎯 Today focus button for quick navigation
+- 📆 Easy date navigation with month/year picker
+- 🌙 "Someday" column for future tasks
 - 🔒 Auth0 authentication
 - 💾 Data persistence with DrizzleORM
-- 🌓 Light/Dark theme support
-- 🔍 Task search and filtering
+- ⚡ PWA support for offline access
 
 ## Tech Stack
 

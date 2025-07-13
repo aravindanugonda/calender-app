@@ -41,7 +41,7 @@ export async function GET(request: NextRequest) {
         .where(eq(tasks.userId, user.id)); // Use local user ID
     }
 
-    console.log('Fetched tasks:', userTasks); // Add logging
+    // console.log('Fetched tasks:', userTasks); // Add logging
     return NextResponse.json(userTasks);
   } catch (error) {
     console.error("Error fetching tasks:", error);

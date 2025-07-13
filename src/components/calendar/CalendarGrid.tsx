@@ -51,7 +51,7 @@ export function CalendarGrid() {
   }, [currentDate, setTasks, viewType, setLoading]);
 
   useEffect(() => {
-    console.log('Loading tasks for:', currentDate, viewType);
+    // console.log('Loading tasks for:', currentDate, viewType);
     loadTasks();
   }, [currentDate, viewType, loadTasks]);
 
