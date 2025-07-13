@@ -1,10 +1,22 @@
 // For Auth0 version 4.0.0, we need to mount the authentication routes
+import { NextRequest, NextResponse } from "next/server";
 import { auth0 } from "@/lib/auth";
 
-// The routes are automatically mounted by the auth0 middleware
-// This file is required to handle the dynamic routes, but no implementation is needed
-// as the auth0 middleware handles all the authentication logic
-
-export async function GET() {
-  return Response.json({ error: "Route not directly accessible" }, { status: 404 });
+// Create route handlers to handle authentication paths
+export async function GET(request: NextRequest) {
+  // Route will be handled by middleware automatically
+  // Just route based on path
+  const { pathname } = new URL(request.url);
+  
+  if (pathname.endsWith('/login')) {
+    return NextResponse.redirect(new URL('/api/auth/login', request.url));
+  } else if (pathname.endsWith('/logout')) {
+    return NextResponse.redirect(new URL('/api/auth/logout', request.url));
+  } else if (pathname.endsWith('/callback')) {
+    // The auth0 middleware handles the callback
+    return NextResponse.next();
+  }
+  
+  // Default response for other paths
+  return NextResponse.next();
 }
