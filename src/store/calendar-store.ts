@@ -134,7 +134,6 @@ export const useCalendarStore = create<CalendarStore>((set, get) => ({
   },
 
   deleteTask: async (id) => {
-    const state = get();
     try {
       const response = await fetch(`/api/tasks?id=${id}`, {
         method: 'DELETE',
@@ -152,7 +151,7 @@ export const useCalendarStore = create<CalendarStore>((set, get) => ({
       }));
 
       // Refresh tasks to ensure consistency
-      await get().fetchTasks(state.currentDate);
+      await get().fetchTasks(get().currentDate);
     } catch (error) {
       console.error('Error deleting task:', error);
       throw error; // Re-throw to handle in the UI
