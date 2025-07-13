@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useCalendarStore } from "@/store/calendar-store";
 import { WeekView } from "./WeekView";
 import { MonthView } from "./MonthView";
@@ -21,12 +21,7 @@ export function CalendarGrid() {
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    console.log('Loading tasks for:', currentDate, viewType);
-    loadTasks();
-  }, [currentDate, viewType]);
-
-  const loadTasks = async () => {
+  const loadTasks = useCallback(async () => {
     setLoading(true);
     setError(null);
     
@@ -53,7 +48,12 @@ export function CalendarGrid() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [currentDate, setTasks, viewType, setLoading]);
+
+  useEffect(() => {
+    console.log('Loading tasks for:', currentDate, viewType);
+    loadTasks();
+  }, [currentDate, viewType, loadTasks]);
 
   const handleDateClick = (date: Date) => {
     setSelectedDate(date);

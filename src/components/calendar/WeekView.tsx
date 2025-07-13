@@ -24,7 +24,7 @@ export function WeekView({ onDateClick }: WeekViewProps) {
         const matches = isSameDay(taskDate, date);
         console.log('Task:', task.title, 'Date:', taskDate, 'Matches:', matches);
         return matches;
-      } catch (error) {
+      } catch {
         console.error("Invalid date in task:", task);
         return false;
       }

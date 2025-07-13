@@ -49,7 +49,8 @@ export const useCalendarStore = create<CalendarStore>((set, get) => ({
   },
 
   fetchTasks: async (date: Date) => {
-    if (get().isLoading) return;
+    const store = get();
+    if (store.isLoading) return;
 
     try {
       set({ isLoading: true });

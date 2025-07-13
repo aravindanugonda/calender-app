@@ -1,5 +1,5 @@
 import { useCallback } from 'react';
-import { format, setMonth, setYear } from 'date-fns';
+import { setMonth, setYear } from 'date-fns';
 import { useCalendarStore } from '@/store/calendar-store';
 
 interface MonthYearPickerProps {
