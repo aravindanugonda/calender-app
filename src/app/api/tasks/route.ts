@@ -117,7 +117,7 @@ export async function PUT(request: NextRequest) {
 
     const body = await request.json();
     // Remove userId from updates to prevent foreign key issues
-    const { userId, ...updateData } = body;
+    const { ...updateData } = body;
     const updates = {
       ...updateData,
       updatedAt: new Date().toISOString(),

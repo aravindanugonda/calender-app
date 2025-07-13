@@ -19,7 +19,7 @@ interface TaskModalProps {
 
 export function TaskModal({ isOpen, onClose, selectedDate, task, mode = 'create' }: TaskModalProps) {
   const { addTask, updateTask, deleteTask } = useCalendarStore();
-  const { user, isLoading: isLoadingUser } = useUser();
+  const { user } = useUser();
   const [title, setTitle] = useState(task?.title || "");
   const [description, setDescription] = useState(task?.description || "");
   const [colorKey, setColorKey] = useState<TaskColorKey>(task?.color as TaskColorKey || 'default');
@@ -64,7 +64,8 @@ export function TaskModal({ isOpen, onClose, selectedDate, task, mode = 'create'
         await addTask(taskData);
       }
       onClose();
-    } catch (err) {
+    } catch (error) {
+      console.error('Failed to save task:', error);
       setError('Failed to save task. Please try again.');
     } finally {
       setIsSubmitting(false);
@@ -79,7 +80,8 @@ export function TaskModal({ isOpen, onClose, selectedDate, task, mode = 'create'
     try {
       await deleteTask(task.id);
       onClose();
-    } catch (err) {
+    } catch (error) {
+      console.error('Failed to delete task:', error);
       setError('Failed to delete task. Please try again.');
     } finally {
       setIsSubmitting(false);

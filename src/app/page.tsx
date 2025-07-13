@@ -5,7 +5,7 @@ import { useState, useEffect } from "react";
 import { format, addWeeks, subWeeks, addMonths, subMonths } from "date-fns";
 import { useCalendarStore } from "@/store/calendar-store";
 import { MonthYearPicker } from "@/components/calendar/MonthYearPicker";
-import { Button } from "@/components/ui/button";
+
 
 export default function Home() {
   const { currentDate, setCurrentDate, viewType, setViewType, fetchTasks } = useCalendarStore();
@@ -14,7 +14,7 @@ export default function Home() {
   useEffect(() => {
     // Initial task fetch
     fetchTasks(currentDate);
-  }, []); // Only run once on mount
+  }, [fetchTasks, currentDate]); // Add dependencies
 
   const handlePrevious = () => {
     if (viewType === 'week') {
