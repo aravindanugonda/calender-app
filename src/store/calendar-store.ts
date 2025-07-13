@@ -81,7 +81,6 @@ export const useCalendarStore = create<CalendarStore>((set, get) => ({
   setTasks: (tasks: Task[]) => set({ tasks }),
 
   addTask: async (taskData) => {
-    const state = get();
     try {
       const response = await fetch('/api/tasks', {
         method: 'POST',
@@ -97,7 +96,7 @@ export const useCalendarStore = create<CalendarStore>((set, get) => ({
       set((state) => ({ tasks: [...state.tasks, newTask] }));
       
       // Refresh tasks for the current period
-      await get().fetchTasks(state.currentDate);
+      await get().fetchTasks(get().currentDate);
     } catch (error) {
       console.error('Error adding task:', error);
       throw error; // Re-throw to handle in the UI
