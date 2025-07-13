@@ -81,7 +81,6 @@ export const useCalendarStore = create<CalendarStore>((set, get) => ({
   setTasks: (tasks: Task[]) => set({ tasks }),
 
   addTask: async (taskData) => {
-    const state = get();
     try {
       const response = await fetch('/api/tasks', {
         method: 'POST',
@@ -97,7 +96,7 @@ export const useCalendarStore = create<CalendarStore>((set, get) => ({
       set((state) => ({ tasks: [...state.tasks, newTask] }));
       
       // Refresh tasks for the current period
-      await get().fetchTasks(state.currentDate);
+      await get().fetchTasks(get().currentDate);
     } catch (error) {
       console.error('Error adding task:', error);
       throw error; // Re-throw to handle in the UI
@@ -105,7 +104,6 @@ export const useCalendarStore = create<CalendarStore>((set, get) => ({
   },
 
   updateTask: async (id, updates) => {
-    const state = get();
     try {
       const response = await fetch(`/api/tasks?id=${id}`, {
         method: 'PUT',
@@ -128,7 +126,7 @@ export const useCalendarStore = create<CalendarStore>((set, get) => ({
       }));
 
       // Refresh tasks to ensure consistency
-      await get().fetchTasks(state.currentDate);
+      await get().fetchTasks(get().currentDate);
     } catch (error) {
       console.error('Error updating task:', error);
       throw error; // Re-throw to handle in the UI
@@ -136,7 +134,6 @@ export const useCalendarStore = create<CalendarStore>((set, get) => ({
   },
 
   deleteTask: async (id) => {
-    const state = get();
     try {
       const response = await fetch(`/api/tasks?id=${id}`, {
         method: 'DELETE',
@@ -154,7 +151,7 @@ export const useCalendarStore = create<CalendarStore>((set, get) => ({
       }));
 
       // Refresh tasks to ensure consistency
-      await get().fetchTasks(state.currentDate);
+      await get().fetchTasks(get().currentDate);
     } catch (error) {
       console.error('Error deleting task:', error);
       throw error; // Re-throw to handle in the UI
@@ -178,16 +175,15 @@ export const useCalendarStore = create<CalendarStore>((set, get) => ({
   setSelectedTask: (task: Task | null) => set({ selectedTask: task }),
 
   getTasksForDate: (date: Date) => {
-    const { tasks } = get();
-    return tasks.filter((task) => isSameDay(new Date(task.date), date));
+    return get().tasks.filter((task) => isSameDay(new Date(task.date), date));
   },
 
   getFilteredTasks: () => {
-    const state = get();
-    if (!state.searchQuery) return state.tasks;
+    const { tasks, searchQuery } = get();
+    if (!searchQuery) return tasks;
     
-    const query = state.searchQuery.toLowerCase();
-    return state.tasks.filter((task) => 
+    const query = searchQuery.toLowerCase();
+    return tasks.filter((task) => 
       task.title.toLowerCase().includes(query) ||
       task.description?.toLowerCase().includes(query)
     );
