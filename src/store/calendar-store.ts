@@ -178,8 +178,8 @@ export const useCalendarStore = create<CalendarStore>((set, get) => ({
   setSelectedTask: (task: Task | null) => set({ selectedTask: task }),
 
   getTasksForDate: (date: Date) => {
-    const state = get();
-    return state.tasks.filter((task) => isSameDay(new Date(task.date), date));
+    const { tasks } = get();
+    return tasks.filter((task) => isSameDay(new Date(task.date), date));
   },
 
   getFilteredTasks: () => {
