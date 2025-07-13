@@ -1,6 +1,5 @@
 // For Auth0 version 4.0.0, we need to mount the authentication routes
 import { NextRequest, NextResponse } from "next/server";
-import { auth0 } from "@/lib/auth";
 
 // Create route handlers to handle authentication paths
 export async function GET(request: NextRequest) {
