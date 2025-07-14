@@ -1,32 +1,37 @@
 # Weekly Planner & To-Do List App
 
-A modern, feature-rich weekly planner and to-do list app inspired by Tweek. Built with Next.js 15, TypeScript, and Tailwind CSS.
+A modern, feature-rich weekly planner and to-do list app. Built with Next.js 15, TypeScript, and Tailwind CSS.
 
 ## Features
 
-- 📅 Week and Month view options with intuitive toggle
-- ✅ Task management with checkboxes
-- 🎨 Task color coding and categorization
-- 📝 Rich task descriptions
-- 🔄 Recurring tasks support
-- 📱 Responsive design
-- 🎯 Today focus button for quick navigation
-- 📆 Easy date navigation with month/year picker
-- 🌙 "Someday" column for future tasks
-- 🔒 Auth0 authentication
-- 💾 Data persistence with DrizzleORM
-- ⚡ PWA support for offline access
+- 📅 **Week and Month views** with intuitive toggle
+- ✅ **Task management** with checkboxes and rich descriptions
+- 🎨 **Task color coding** and categorization
+- 🔄 **Recurring tasks** indicator for easy identification
+- 🔍 **Real-time search** functionality across all tasks
+- 📱 **Mobile-optimized responsive design** with touch-friendly interface
+- 🎯 **Today focus button** for quick navigation
+- 📆 **Interactive date navigation** with clickable month/year pickers
+- 🌙 **"Someday" column** for future tasks and ideas
+- 🔒 **Secure authentication** with Auth0 v4
+- 💾 **Data persistence** with Turso (LibSQL) and DrizzleORM
+- ⚡ **PWA support** for offline access
+- 🎨 **Current day highlighting** in both week and month views
+- 🔄 **Real-time updates** with optimistic UI
+- 👤 **Automatic user provisioning** on first login
 
 ## Tech Stack
 
-- **Framework:** Next.js 15.3.5
+- **Framework:** Next.js 15.3.5 (App Router)
 - **Language:** TypeScript
 - **Styling:** Tailwind CSS
-- **Authentication:** Auth0
-- **Database:** LibSQL/Drizzle
+- **Authentication:** Auth0 v4 (with middleware-based protection)
+- **Database:** Turso (LibSQL) with DrizzleORM
 - **State Management:** Zustand
 - **UI Components:** Radix UI
 - **PWA Support:** next-pwa
+- **Date Handling:** date-fns
+- **Deployment:** Vercel
 
 ## Getting Started
 
@@ -42,10 +47,10 @@ A modern, feature-rich weekly planner and to-do list app inspired by Tweek. Buil
    ```
 
 3. Create a `.env.local` file with your Auth0 credentials and required environment variables:
-   ```
-   # Auth0 configuration
+   ```env
+   # Auth0 configuration (v4 format)
    APP_BASE_URL=http://localhost:3000
-   AUTH0_DOMAIN=https://your-auth0-domain.auth0.com
+   AUTH0_DOMAIN=your-auth0-domain.auth0.com
    AUTH0_SECRET=your-secret
    AUTH0_CLIENT_ID=your-client-id
    AUTH0_CLIENT_SECRET=your-client-secret
@@ -58,12 +63,6 @@ A modern, feature-rich weekly planner and to-do list app inspired by Tweek. Buil
    NEXT_PUBLIC_VERCEL_ENV=production
    NEXT_PUBLIC_VERCEL_URL=https://your-vercel-app-url.vercel.app
    ```
-# Recent Changes
-
-- Improved session and authentication handling (no UI clutter or unauthorized fetches after signout)
-- Calendar grid background set to white for better UI consistency
-- Dashboard header cleaned up (removed extra text and color)
-- ESLint errors for unused variables and 'any' types fixed
 
 
 4. Run the development server:
@@ -75,12 +74,63 @@ A modern, feature-rich weekly planner and to-do list app inspired by Tweek. Buil
 
 ## Project Structure
 
-- `/src/app` - Next.js 15 app directory
-- `/src/components` - React components
-- `/src/lib` - Utility functions and configurations
-- `/src/store` - Zustand state management
-- `/src/types` - TypeScript type definitions
-- `/public` - Static assets
+```
+src/
+├── app/                    # Next.js App Router pages
+│   ├── (protected)/       # Protected routes
+│   │   └── dashboard/     # Main dashboard
+│   ├── api/               # API routes
+│   │   └── tasks/         # Task management API
+│   ├── globals.css        # Global styles
+│   ├── layout.tsx         # Root layout
+│   └── page.tsx           # Home page (auth redirect)
+├── components/
+│   ├── calendar/          # Calendar components
+│   │   ├── CalendarGrid.tsx
+│   │   ├── CalendarHeader.tsx
+│   │   ├── MonthView.tsx
+│   │   ├── MonthYearPicker.tsx
+│   │   └── WeekView.tsx
+│   ├── layout/            # Layout components
+│   │   └── DashboardWrapper.tsx
+│   ├── tasks/             # Task components
+│   │   ├── TaskItem.tsx
+│   │   ├── TaskList.tsx
+│   │   └── TaskModal.tsx
+│   └── ui/                # UI components
+│       ├── AuthStatus.tsx
+│       ├── button.tsx
+│       └── ...
+├── lib/                   # Utility functions
+│   ├── auth.ts            # Auth0 configuration
+│   ├── db.ts              # Database configuration
+│   └── utils.ts           # Helper functions
+├── store/                 # Zustand state management
+│   └── calendar-store.ts
+├── types/                 # TypeScript type definitions
+└── middleware.ts          # Auth0 middleware
+```
+
+## Recent Changes
+
+### Latest Updates
+- ✅ **Fixed Auth0 v4 integration** - Proper middleware-based authentication
+- ✅ **Enhanced calendar UI** - Removed overlapping welcome message
+- ✅ **Added interactive date navigation** - Clickable month/year pickers
+- ✅ **Improved current day highlighting** - Better visual indicators
+- ✅ **Fixed duplicate email display** - Smart user info handling
+- ✅ **Prevented unauthorized API calls** - Better session management
+- ✅ **Fixed automatic user creation** - New users created seamlessly on first login
+- ✅ **Simplified recurring tasks** - Added checkbox indicator for recurring tasks
+- ✅ **Real-time search functionality** - Search across all tasks with instant results
+- ✅ **Removed branding** - Clean, generic application name
+- ✅ **Mobile responsiveness** - Optimized for iPhone and mobile devices with touch-friendly interactions
+
+### Previous Changes
+- Improved session and authentication handling
+- Calendar grid background set to white for better UI consistency
+- Dashboard header cleaned up
+- ESLint errors for unused variables and 'any' types fixed
 
 ## Contributing
 

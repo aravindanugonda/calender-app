@@ -26,7 +26,7 @@ interface CalendarStore {
   setSelectedTask: (task: Task | null) => void;
   getTasksForDate: (date: Date) => Task[];
   getFilteredTasks: () => Task[];
-  fetchTasks: (date: Date) => Promise<void>;
+  fetchTasks: (date: Date, checkAuth?: boolean) => Promise<void>;
 }
 
 export const useCalendarStore = create<CalendarStore>((set, get) => ({
@@ -45,12 +45,30 @@ export const useCalendarStore = create<CalendarStore>((set, get) => ({
       weekStart: startOfWeek(date, { weekStartsOn: 1 }),
       weekEnd: endOfWeek(date, { weekStartsOn: 1 }),
     });
-    get().fetchTasks(date);
+    get().fetchTasks(date, false);
   },
 
-  fetchTasks: async (date: Date) => {
+  fetchTasks: async (date: Date, checkAuth: boolean = true) => {
     const state = get();
     if (state.isLoading) return;
+
+    // If checkAuth is true, check authentication first
+    if (checkAuth) {
+      try {
+        const authResponse = await fetch('/api/auth/me');
+        if (!authResponse.ok) {
+          // User not authenticated, don't fetch tasks
+          console.log('User not authenticated, skipping task fetch');
+          set({ tasks: [], isLoading: false });
+          return;
+        }
+      } catch (error) {
+        // Error checking auth, don't fetch tasks
+        console.error('Error checking auth:', error);
+        set({ tasks: [], isLoading: false });
+        return;
+      }
+    }
 
     try {
       set({ isLoading: true });
@@ -97,7 +115,7 @@ export const useCalendarStore = create<CalendarStore>((set, get) => ({
       set((state) => ({ tasks: [...state.tasks, newTask] }));
       
       // Refresh tasks for the current period
-      await get().fetchTasks(state.currentDate);
+      await get().fetchTasks(state.currentDate, false);
     } catch (error) {
       console.error('Error adding task:', error);
       throw error; // Re-throw to handle in the UI
@@ -128,7 +146,7 @@ export const useCalendarStore = create<CalendarStore>((set, get) => ({
       }));
 
       // Refresh tasks to ensure consistency
-      await get().fetchTasks(state.currentDate);
+      await get().fetchTasks(state.currentDate, false);
     } catch (error) {
       console.error('Error updating task:', error);
       throw error; // Re-throw to handle in the UI
@@ -154,7 +172,7 @@ export const useCalendarStore = create<CalendarStore>((set, get) => ({
       }));
 
       // Refresh tasks to ensure consistency
-      await get().fetchTasks(state.currentDate);
+      await get().fetchTasks(state.currentDate, false);
     } catch (error) {
       console.error('Error deleting task:', error);
       throw error; // Re-throw to handle in the UI

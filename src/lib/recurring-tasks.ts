@@ -40,3 +40,44 @@ export function generateRecurringTasks(
 
   return tasks;
 }
+
+export function isRecurringTaskDue(task: Task, currentDate: Date): boolean {
+  if (!task.isRecurring || !task.recurringPattern) {
+    return false;
+  }
+
+  const taskDate = new Date(task.date);
+  const pattern = task.recurringPattern;
+
+  // Check if the task is due today based on its recurring pattern
+  switch (pattern.type) {
+    case "daily":
+      return true; // Daily tasks are always due
+    case "weekly":
+      return taskDate.getDay() === currentDate.getDay();
+    case "monthly":
+      return taskDate.getDate() === currentDate.getDate();
+    default:
+      return false;
+  }
+}
+
+export function getNextRecurringDate(task: Task): Date | null {
+  if (!task.isRecurring || !task.recurringPattern) {
+    return null;
+  }
+
+  const taskDate = new Date(task.date);
+  const pattern = task.recurringPattern;
+
+  switch (pattern.type) {
+    case "daily":
+      return addDays(taskDate, pattern.interval);
+    case "weekly":
+      return addWeeks(taskDate, pattern.interval);
+    case "monthly":
+      return addMonths(taskDate, pattern.interval);
+    default:
+      return null;
+  }
+}

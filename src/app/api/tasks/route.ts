@@ -5,6 +5,28 @@ import { tasks, users } from "@/drizzle/schema";
 import { eq, and, gte, lte } from "drizzle-orm";
 import type { User } from "@/types";
 
+// Helper function to get or create user
+async function getOrCreateUser(auth0Id: string, email: string, name: string | null): Promise<User> {
+  let user = await db.select().from(users).where(eq(users.auth0Id, auth0Id)).get();
+  
+  if (!user) {
+    const userId = crypto.randomUUID();
+    const newUser: User = {
+      id: userId,
+      auth0Id: auth0Id,
+      email: email,
+      name: name,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+    
+    await db.insert(users).values(newUser);
+    user = newUser;
+  }
+  
+  return user;
+}
+
 export async function GET(request: NextRequest) {
   try {
     const session = await auth0.getSession();
@@ -17,12 +39,8 @@ export async function GET(request: NextRequest) {
     const startDate = searchParams.get("startDate");
     const endDate = searchParams.get("endDate");
 
-    // Get the local user ID first
-    const user = await db.select().from(users).where(eq(users.auth0Id, session.user.sub)).get();
-    // console.log("API /api/tasks user:", user);
-    if (!user) {
-      return NextResponse.json({ error: "User not found" }, { status: 404 });
-    }
+    // Get or create user first
+    const user = await getOrCreateUser(session.user.sub, session.user.email ?? '', session.user.name ?? null);
 
     let userTasks;
     if (startDate && endDate) {
@@ -125,11 +143,8 @@ export async function PUT(request: NextRequest) {
       updatedAt: new Date().toISOString(),
     };
 
-    // Get the local user ID first
-    const user = await db.select().from(users).where(eq(users.auth0Id, session.user.sub)).get();
-    if (!user) {
-      return NextResponse.json({ error: "User not found" }, { status: 404 });
-    }
+    // Get or create user first
+    const user = await getOrCreateUser(session.user.sub, session.user.email ?? '', session.user.name ?? null);
 
     await db
       .update(tasks)
@@ -156,11 +171,8 @@ export async function DELETE(request: NextRequest) {
       return NextResponse.json({ error: "Task ID is required" }, { status: 400 });
     }
 
-    // Get the local user ID first
-    const user = await db.select().from(users).where(eq(users.auth0Id, session.user.sub)).get();
-    if (!user) {
-      return NextResponse.json({ error: "User not found" }, { status: 404 });
-    }
+    // Get or create user first
+    const user = await getOrCreateUser(session.user.sub, session.user.email ?? '', session.user.name ?? null);
 
     await db
       .delete(tasks)

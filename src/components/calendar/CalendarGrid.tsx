@@ -4,12 +4,11 @@ import { useState, useEffect, useCallback } from "react";
 import { useCalendarStore } from "@/store/calendar-store";
 import { WeekView } from "./WeekView";
 import { MonthView } from "./MonthView";
-import { CustomView } from "./CustomView";
 import { startOfWeek, endOfWeek, startOfMonth, endOfMonth } from "date-fns";
-import { CalendarHeader } from "./CalendarHeader";
 import { TaskModal } from "../tasks/TaskModal";
 import { Loading } from "@/components/ui/loading";
 import { Toast } from "@/components/ui/toast";
+import { Task } from "@/types";
 
 interface ErrorResponse {
   error: string;
@@ -28,6 +27,8 @@ export function CalendarGrid({ session }: { session?: Session }) {
   const { viewType, currentDate, setTasks, setLoading, isLoading } = useCalendarStore();
   const [isTaskModalOpen, setIsTaskModalOpen] = useState(false);
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
+  const [selectedTask, setSelectedTask] = useState<Task | null>(null);
+  const [modalMode, setModalMode] = useState<'create' | 'edit'>('create');
   const [error, setError] = useState<string | null>(null);
 
   const loadTasks = useCallback(async () => {
@@ -64,7 +65,7 @@ export function CalendarGrid({ session }: { session?: Session }) {
   }, [currentDate, setTasks, viewType, setLoading]);
 
   useEffect(() => {
-    if (session) {
+    if (session?.user) {
       loadTasks();
     } else {
       setTasks([]);
@@ -72,7 +73,23 @@ export function CalendarGrid({ session }: { session?: Session }) {
     }
   }, [currentDate, viewType, loadTasks, session, setTasks]);
 
-  if (!session) {
+  // Listen for custom events to open task modal
+  useEffect(() => {
+    const handleOpenTaskModal = (event: CustomEvent) => {
+      const { task, mode } = event.detail;
+      setSelectedTask(task);
+      setSelectedDate(new Date(task.date));
+      setModalMode(mode);
+      setIsTaskModalOpen(true);
+    };
+
+    window.addEventListener('openTaskModal', handleOpenTaskModal as EventListener);
+    return () => {
+      window.removeEventListener('openTaskModal', handleOpenTaskModal as EventListener);
+    };
+  }, []);
+
+  if (!session?.user) {
     return (
       <div className="flex flex-col items-center justify-center h-full">
         <div className="text-red-500 text-lg font-semibold mb-4">You are not authorized. Please log in.</div>
@@ -90,12 +107,13 @@ export function CalendarGrid({ session }: { session?: Session }) {
 
   const handleDateClick = (date: Date) => {
     setSelectedDate(date);
+    setSelectedTask(null);
+    setModalMode('create');
     setIsTaskModalOpen(true);
   };
 
   return (
     <div className="flex flex-col h-full bg-white">
-      {session && <CalendarHeader />}
       {isLoading ? (
         <div className="flex-1 flex items-center justify-center">
           <Loading />
@@ -108,9 +126,6 @@ export function CalendarGrid({ session }: { session?: Session }) {
           {viewType === "month" && (
             <MonthView onDateClick={handleDateClick} />
           )}
-          {viewType === "custom" && (
-            <CustomView />
-          )}
         </div>
       )}
       <TaskModal
@@ -118,8 +133,12 @@ export function CalendarGrid({ session }: { session?: Session }) {
         onClose={() => {
           setIsTaskModalOpen(false);
           setSelectedDate(null);
+          setSelectedTask(null);
+          setModalMode('create');
         }}
         selectedDate={selectedDate}
+        task={selectedTask || undefined}
+        mode={modalMode}
       />
       {error && (
         <Toast

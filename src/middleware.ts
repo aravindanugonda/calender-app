@@ -4,15 +4,14 @@ import { auth0 } from "./lib/auth";
 
 export async function middleware(request: NextRequest) {
   const pathname = request.nextUrl.pathname;
-  // Let Auth0 handle its own SDK routes
+  // Let Auth0 handle its own SDK routes (v4 format without /api prefix)
   const auth0Routes = [
     "/auth/login",
     "/auth/logout",
     "/auth/callback",
     "/auth/profile",
     "/auth/access-token",
-    "/auth/backchannel-logout",
-    "/api/auth"
+    "/auth/backchannel-logout"
   ];
   if (auth0Routes.some(route => pathname.startsWith(route))) {
     try {

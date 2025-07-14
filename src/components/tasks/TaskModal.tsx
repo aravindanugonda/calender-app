@@ -1,11 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useCalendarStore } from "@/store/calendar-store";
 import { Task } from "@/types";
 import { cn } from "@/lib/utils";
 import { taskColors, type TaskColorKey } from "@/lib/colors";
-import { X, Calendar, AlertCircle } from "lucide-react";
+import { X, Calendar, AlertCircle, Repeat } from "lucide-react";
 import { format } from "date-fns";
 import { useUser } from "@auth0/nextjs-auth0";
 
@@ -23,9 +23,27 @@ export function TaskModal({ isOpen, onClose, selectedDate, task, mode = 'create'
   const [title, setTitle] = useState(task?.title || "");
   const [description, setDescription] = useState(task?.description || "");
   const [colorKey, setColorKey] = useState<TaskColorKey>(task?.color as TaskColorKey || 'default');
+  const [isRecurring, setIsRecurring] = useState(task?.isRecurring || false);
   const [showConfirmDelete, setShowConfirmDelete] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Update state when task prop changes
+  useEffect(() => {
+    if (task) {
+      setTitle(task.title || "");
+      setDescription(task.description || "");
+      setColorKey(task.color as TaskColorKey || 'default');
+      setIsRecurring(task.isRecurring || false);
+    } else {
+      setTitle("");
+      setDescription("");
+      setColorKey('default');
+      setIsRecurring(false);
+    }
+    setError(null);
+    setShowConfirmDelete(false);
+  }, [task, isOpen]);
 
   if (!isOpen) return null;
 
@@ -52,8 +70,8 @@ export function TaskModal({ isOpen, onClose, selectedDate, task, mode = 'create'
       color: colorKey,
       position: task?.position ?? Date.now(),
       parentTaskId: task?.parentTaskId,
-      isRecurring: task?.isRecurring ?? false,
-      recurringPattern: task?.recurringPattern,
+      isRecurring: isRecurring,
+      recurringPattern: null,
       subtasks: task?.subtasks ?? [],
     };
 
@@ -89,25 +107,25 @@ export function TaskModal({ isOpen, onClose, selectedDate, task, mode = 'create'
   };
 
   return (
-    <div className="fixed inset-0 bg-black/25 flex items-center justify-center z-50 backdrop-blur-[2px]">
+    <div className="fixed inset-0 bg-black/25 flex items-end sm:items-center justify-center z-50 backdrop-blur-[2px]">
       <div 
-        className="w-full max-w-lg mx-4 bg-white rounded-lg shadow-xl overflow-hidden"
+        className="w-full max-w-lg mx-0 sm:mx-4 bg-white rounded-t-xl sm:rounded-lg shadow-xl overflow-hidden max-h-[90vh] sm:max-h-none"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
+        <div className="px-4 sm:px-6 py-4 border-b border-gray-100 flex items-center justify-between">
           <h2 className="text-lg font-semibold text-gray-900">
             {mode === 'edit' ? 'Edit Task' : 'New Task'}
           </h2>
           <button
             onClick={onClose}
-            className="p-2 text-gray-400 hover:text-gray-500 rounded-full hover:bg-gray-50 transition-colors"
+            className="p-2 text-gray-400 hover:text-gray-500 rounded-full hover:bg-gray-50 transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="px-6 py-4">
+        <form onSubmit={handleSubmit} className="px-4 sm:px-6 py-4 overflow-y-auto">
           <div className="space-y-4">
             {/* Quick title input */}
             <div>
@@ -132,13 +150,13 @@ export function TaskModal({ isOpen, onClose, selectedDate, task, mode = 'create'
 
             {/* Color picker */}
             <div className="border-t border-b border-gray-100 py-4">
-              <div className="flex flex-wrap gap-2">
+              <div className="flex flex-wrap gap-3 sm:gap-2">
                 {Object.entries(taskColors).map(([key, color]) => (
                   <button
                     key={key}
                     type="button"
                     className={cn(
-                      "w-8 h-8 rounded transition-all",
+                      "w-10 h-10 sm:w-8 sm:h-8 rounded transition-all min-w-[44px] min-h-[44px] sm:min-w-0 sm:min-h-0",
                       colorKey === key ? "ring-2 ring-offset-2 ring-gray-400 scale-110" : "hover:scale-105"
                     )}
                     style={{ 
@@ -152,14 +170,31 @@ export function TaskModal({ isOpen, onClose, selectedDate, task, mode = 'create'
               </div>
             </div>
 
+            {/* Recurring task checkbox */}
+            <div className="border-b border-gray-100 pb-4">
+              <div className="flex items-center gap-3 p-2 sm:p-0">
+                <input
+                  type="checkbox"
+                  id="recurring-checkbox"
+                  checked={isRecurring}
+                  onChange={(e) => setIsRecurring(e.target.checked)}
+                  className="w-5 h-5 sm:w-4 sm:h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                />
+                <Repeat className="w-5 h-5 sm:w-4 sm:h-4 text-gray-500" />
+                <label htmlFor="recurring-checkbox" className="text-base sm:text-sm font-medium text-gray-700">
+                  Recurring Task
+                </label>
+              </div>
+            </div>
+
             {/* Description */}
             <div>
               <textarea
                 placeholder="Add details (optional)"
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:border-blue-500 focus:ring-blue-500/10 min-h-[100px] text-sm"
-                rows={4}
+                className="w-full px-3 py-3 sm:py-2 border border-gray-200 rounded-lg focus:border-blue-500 focus:ring-blue-500/10 min-h-[80px] sm:min-h-[100px] text-base sm:text-sm"
+                rows={3}
               />
             </div>
           </div>
@@ -173,12 +208,12 @@ export function TaskModal({ isOpen, onClose, selectedDate, task, mode = 'create'
               </div>
             )}
             
-            <div className="flex items-center justify-end gap-3">
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-end gap-3">
               {mode === 'edit' && (
                 <button
                   type="button"
                   onClick={() => setShowConfirmDelete(true)}
-                  className="px-4 py-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                  className="px-4 py-3 sm:py-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors min-h-[44px] text-base sm:text-sm"
                   disabled={isSubmitting}
                 >
                   Delete
@@ -187,14 +222,14 @@ export function TaskModal({ isOpen, onClose, selectedDate, task, mode = 'create'
               <button
                 type="button"
                 onClick={onClose}
-                className="px-4 py-2 text-gray-700 hover:bg-gray-50 rounded-lg transition-colors"
+                className="px-4 py-3 sm:py-2 text-gray-700 hover:bg-gray-50 rounded-lg transition-colors min-h-[44px] text-base sm:text-sm"
                 disabled={isSubmitting}
               >
                 Cancel
               </button>
               <button
                 type="submit"
-                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="px-4 py-3 sm:py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed min-h-[44px] text-base sm:text-sm"
                 disabled={isSubmitting}
               >
                 {isSubmitting ? 'Saving...' : mode === 'edit' ? 'Save Changes' : 'Add Task'}

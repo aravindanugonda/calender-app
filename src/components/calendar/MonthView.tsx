@@ -9,7 +9,7 @@ interface MonthViewProps {
 }
 
 export function MonthView({ onDateClick }: MonthViewProps) {
-  const { currentDate, tasks } = useCalendarStore();
+  const { currentDate, tasks, searchQuery, getFilteredTasks } = useCalendarStore();
 
   const monthStart = startOfMonth(currentDate);
   const monthEnd = endOfMonth(currentDate);
@@ -27,7 +27,8 @@ export function MonthView({ onDateClick }: MonthViewProps) {
   );
 
   const getTasksForDate = (date: Date) => {
-    return tasks.filter((task) => isSameDay(new Date(task.date), date));
+    const filteredTasks = searchQuery ? getFilteredTasks() : tasks;
+    return filteredTasks.filter((task) => isSameDay(new Date(task.date), date));
   };
 
   return (
@@ -38,11 +39,12 @@ export function MonthView({ onDateClick }: MonthViewProps) {
           <div
             key={day}
             className={cn(
-              "py-2 text-center text-sm font-semibold text-gray-600",
+              "py-2 sm:py-3 text-center text-xs sm:text-sm font-semibold text-gray-600",
               (index === 5 || index === 6) && "text-gray-400"
             )}
           >
-            {day}
+            <span className="sm:hidden">{day.charAt(0)}</span>
+            <span className="hidden sm:inline">{day}</span>
           </div>
         ))}
       </div>
@@ -59,34 +61,68 @@ export function MonthView({ onDateClick }: MonthViewProps) {
             <div 
               key={date.toString()} 
               className={cn(
-                "min-h-[120px] p-2 bg-white hover:bg-gray-50 group transition-colors",
+                "min-h-[80px] sm:min-h-[120px] p-1 sm:p-2 bg-white hover:bg-gray-50 group transition-colors cursor-pointer",
                 !isCurrentMonth && "bg-gray-50/50 text-gray-400",
-                isCurrentDay && "bg-blue-50 hover:bg-blue-50/80",
+                isCurrentDay && "bg-blue-50 hover:bg-blue-50/80 border-2 border-blue-300 shadow-sm",
                 isWeekend && !isCurrentDay && "bg-gray-50/30"
               )}
+              onClick={() => isCurrentMonth && onDateClick(date)}
             >
-              <div className="flex justify-between items-center mb-2">
+              <div className="flex justify-between items-center mb-1 sm:mb-2">
                 <div className={cn(
-                  "text-sm font-medium",
-                  isCurrentDay ? "text-blue-600" : "text-gray-500",
+                  "text-xs sm:text-sm font-medium",
+                  isCurrentDay ? "text-blue-700 bg-blue-100 w-5 h-5 sm:w-6 sm:h-6 rounded-full flex items-center justify-center text-xs" : "text-gray-500",
                   !isCurrentMonth && "text-gray-400"
                 )}>
                   {format(date, "d")}
                 </div>
                 {isCurrentMonth && (
                   <button
-                    onClick={() => onDateClick(date)}
-                    className="opacity-0 group-hover:opacity-100 transition-opacity p-1 rounded-full hover:bg-gray-200"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onDateClick(date);
+                    }}
+                    className="sm:opacity-0 sm:group-hover:opacity-100 transition-opacity p-1 rounded-full hover:bg-gray-200 min-w-[32px] min-h-[32px] sm:min-w-0 sm:min-h-0 flex items-center justify-center"
                   >
-                    <Plus className="w-4 h-4 text-gray-600" />
+                    <Plus className="w-3 h-3 sm:w-4 sm:h-4 text-gray-600" />
                   </button>
                 )}
               </div>
               
               {isCurrentMonth && (
-                <div className="space-y-1 overflow-y-auto max-h-[calc(100%-2rem)]">
-                  <TaskList tasks={dayTasks} />
-                </div>
+                <>
+                  {/* Mobile: Show only task indicators */}
+                  <div className="sm:hidden">
+                    {dayTasks.length > 0 && (
+                      <div className="flex flex-wrap gap-1 mt-1">
+                        {dayTasks.slice(0, 6).map((task) => (
+                          <button
+                            key={task.id}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              // Open task modal for editing
+                              const event = new CustomEvent('openTaskModal', { 
+                                detail: { task, mode: 'edit' } 
+                              });
+                              window.dispatchEvent(event);
+                            }}
+                            className="w-2 h-2 rounded-full transition-all hover:scale-125"
+                            style={{ backgroundColor: task.color || '#3B82F6' }}
+                            title={task.title}
+                          />
+                        ))}
+                        {dayTasks.length > 6 && (
+                          <span className="text-xs text-gray-500 ml-1">+{dayTasks.length - 6}</span>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                  
+                  {/* Desktop: Show full task list */}
+                  <div className="hidden sm:block space-y-1 overflow-y-auto max-h-[calc(100%-2rem)]">
+                    <TaskList tasks={dayTasks} />
+                  </div>
+                </>
               )}
             </div>
           );

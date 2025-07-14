@@ -22,7 +22,7 @@ export function TaskItem({ task }: TaskItemProps) {
     <>
       <div 
         className={cn(
-          "group px-3 py-2 rounded-lg transition-all",
+          "group px-3 py-2 sm:py-2 rounded-lg transition-all",
           "hover:shadow-sm hover:translate-y-[-1px]",
           task.completed && "opacity-75"
         )}
@@ -31,25 +31,25 @@ export function TaskItem({ task }: TaskItemProps) {
           borderLeft: `3px solid ${color.border}`
         }}
       >
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 sm:gap-3">
           {/* Checkbox */}
           <button
             onClick={() => toggleTaskComplete(task.id)}
-            className="shrink-0 focus:outline-none"
+            className="shrink-0 focus:outline-none min-w-[32px] min-h-[32px] sm:min-w-0 sm:min-h-0 flex items-center justify-center rounded"
           >
             {task.completed ? (
-              <CheckCircle2 className="w-5 h-5 text-blue-500" />
+              <CheckCircle2 className="w-5 h-5 sm:w-5 sm:h-5 text-blue-500" />
             ) : (
-              <Circle className="w-5 h-5 text-gray-400 group-hover:text-gray-600" />
+              <Circle className="w-5 h-5 sm:w-5 sm:h-5 text-gray-400 group-hover:text-gray-600" />
             )}
           </button>
 
           {/* Task title */}
           <span
+            onClick={() => setShowEditModal(true)}
             className={cn(
-              "flex-1 text-sm transition-colors",
-              task.completed ? "line-through text-gray-500" : `text-${color.text}`,
-              "cursor-default"
+              "flex-1 text-sm sm:text-sm transition-colors cursor-pointer py-2 sm:py-0",
+              task.completed ? "line-through text-gray-500" : `text-${color.text}`
             )}
           >
             {task.title}
@@ -58,17 +58,17 @@ export function TaskItem({ task }: TaskItemProps) {
           {/* Edit button */}
           <button
             onClick={() => setShowEditModal(true)}
-            className="shrink-0 opacity-0 group-hover:opacity-100 transition-opacity p-1 hover:bg-black/5 rounded"
+            className="shrink-0 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity p-2 sm:p-1 hover:bg-black/5 rounded min-w-[32px] min-h-[32px] sm:min-w-0 sm:min-h-0 flex items-center justify-center"
           >
-            <Pencil className="w-4 h-4 text-gray-400" />
+            <Pencil className="w-4 h-4 sm:w-4 sm:h-4 text-gray-400" />
           </button>
         </div>
 
         {/* Description preview */}
         {task.description && (
-          <div className="mt-1 text-xs text-gray-500 pl-7">
-            {task.description.length > 100
-              ? task.description.slice(0, 100) + '...'
+          <div className="mt-1 text-xs sm:text-xs text-gray-500 pl-8 sm:pl-7">
+            {task.description.length > 60
+              ? task.description.slice(0, 60) + '...'
               : task.description}
           </div>
         )}

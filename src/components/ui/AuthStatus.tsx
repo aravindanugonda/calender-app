@@ -34,6 +34,10 @@ export default function AuthStatus() {
   const userName = user.name ?? '';
   const userPicture = user.picture ?? '';
   const userEmail = user.email ?? '';
+  
+  // Check if name and email are the same to avoid showing duplicate
+  const displayName = userName && userName !== userEmail ? userName : null;
+  
   return (
     <div className="relative">
       {/* Avatar button */}
@@ -70,11 +74,13 @@ export default function AuthStatus() {
           <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg ring-1 ring-black ring-opacity-5 divide-y divide-gray-100 z-50">
             {/* User info */}
             <div className="px-4 py-3">
-              <p className="text-sm font-medium text-gray-900 truncate">
-                {userName}
-              </p>
+              {displayName && (
+                <p className="text-sm font-medium text-gray-900 truncate">
+                  {displayName}
+                </p>
+              )}
               {userEmail && (
-                <p className="text-sm text-gray-500 truncate">
+                <p className={`text-sm truncate ${displayName ? 'text-gray-500' : 'text-gray-900 font-medium'}`}>
                   {userEmail}
                 </p>
               )}

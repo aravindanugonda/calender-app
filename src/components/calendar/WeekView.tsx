@@ -11,13 +11,14 @@ interface WeekViewProps {
 }
 
 export function WeekView({ onDateClick }: WeekViewProps) {
-  const { currentDate, tasks } = useCalendarStore();
+  const { currentDate, tasks, searchQuery, getFilteredTasks } = useCalendarStore();
   const weekStart = startOfWeek(currentDate, { weekStartsOn: 1 });
 
   const weekDays = Array.from({ length: 7 }, (_, i) => addDays(weekStart, i));
 
   const getTasksForDate = (date: Date) => {
-    const dayTasks = tasks.filter((task) => {
+    const filteredTasks = searchQuery ? getFilteredTasks() : tasks;
+    const dayTasks = filteredTasks.filter((task) => {
       try {
         const taskDate = new Date(task.date);
         return isSameDay(taskDate, date);
@@ -30,17 +31,17 @@ export function WeekView({ onDateClick }: WeekViewProps) {
   };
 
   // Get tasks that don't have a specific date (someday tasks)
-  const somedayTasks = tasks.filter((task) => {
+  const somedayTasks = (searchQuery ? getFilteredTasks() : tasks).filter((task) => {
     const taskDate = new Date(task.date);
     return taskDate.getTime() === 0 || task.title.toLowerCase().includes('someday');
   });
 
   return (
-    <div className="h-full flex">
+    <div className="h-full flex flex-col sm:flex-row">
       {/* Week columns */}
-      <div className="flex-1 grid grid-cols-7">
+      <div className="flex-1 flex flex-col">
         {/* Week header */}
-        <div className="col-span-7 grid grid-cols-7 border-b-2 border-gray-200">
+        <div className="flex sm:grid sm:grid-cols-7 border-b-2 border-gray-200 overflow-x-auto">
           {weekDays.map((day) => {
             const isToday = isDateToday(day);
             const isWeekend = day.getDay() === 0 || day.getDay() === 6;
@@ -49,17 +50,18 @@ export function WeekView({ onDateClick }: WeekViewProps) {
               <div
                 key={day.toISOString()}
                 className={cn(
-                  "weekday-header text-center border-r border-gray-100 last:border-r-0",
+                  "weekday-header flex-shrink-0 w-20 sm:w-auto text-center border-r border-gray-100 last:border-r-0 py-2 sm:py-4",
                   isWeekend && "bg-gray-50"
                 )}
               >
-                <div className="font-semibold text-gray-700">{format(day, "EEE")}</div>
-                <div className="text-xs text-gray-500 mt-1">{format(day, "MMM d")}</div>
+                <div className="font-semibold text-gray-700 text-xs sm:text-sm">{format(day, "EEE")}</div>
+                <div className="text-xs text-gray-500 mt-1 hidden sm:block">{format(day, "MMM d")}</div>
+                <div className="text-xs text-gray-500 mt-1 sm:hidden">{format(day, "M/d")}</div>
                 <div
                   className={cn(
-                    "day-number w-8 h-8 rounded-full flex items-center justify-center mx-auto mt-2 text-sm font-medium",
+                    "day-number w-6 h-6 sm:w-8 sm:h-8 rounded-full flex items-center justify-center mx-auto mt-1 sm:mt-2 text-xs sm:text-sm font-medium",
                     isToday
-                      ? "today text-white"
+                      ? "bg-blue-500 text-white shadow-md"
                       : "text-gray-700 hover:bg-gray-100"
                   )}
                 >
@@ -71,7 +73,7 @@ export function WeekView({ onDateClick }: WeekViewProps) {
         </div>
 
         {/* Week content */}
-        <div className="col-span-7 grid grid-cols-7 flex-1">
+        <div className="flex-1 flex sm:grid sm:grid-cols-7 overflow-x-auto sm:overflow-hidden">
           {weekDays.map((day) => {
             const dayTasks = getTasksForDate(day);
             const isToday = isDateToday(day);
@@ -81,28 +83,53 @@ export function WeekView({ onDateClick }: WeekViewProps) {
               <div
                 key={day.toISOString()}
                 className={cn(
-                  "day-cell group relative cursor-pointer",
-                  isWeekend && "weekend",
-                  isToday && "today"
+                  "day-cell group relative cursor-pointer flex-shrink-0 w-20 sm:w-auto border-r border-gray-100 last:border-r-0",
+                  isWeekend && "bg-gray-50/50",
+                  isToday && "bg-blue-50/30 sm:border-l-2 sm:border-blue-400"
                 )}
               >
                 {/* Day column content */}
-                <div className="p-4 h-full overflow-y-auto tweek-scroll">
-                  <TaskList tasks={dayTasks} />
+                <div className="p-2 sm:p-4 h-full overflow-y-auto calendar-scroll">
+                  {/* Mobile: Show simplified task indicators */}
+                  <div className="sm:hidden flex flex-wrap gap-1">
+                    {dayTasks.map((task) => (
+                      <button
+                        key={task.id}
+                        onClick={() => {
+                          // Open task modal for editing
+                          const event = new CustomEvent('openTaskModal', { 
+                            detail: { task, mode: 'edit' } 
+                          });
+                          window.dispatchEvent(event);
+                        }}
+                        className="w-5 h-5 rounded-full flex items-center justify-center text-xs font-medium text-white transition-all hover:scale-110 shadow-sm flex-shrink-0"
+                        style={{ backgroundColor: task.color || '#3B82F6' }}
+                        title={task.title}
+                      >
+                        {task.title.charAt(0).toUpperCase()}
+                      </button>
+                    ))}
+                  </div>
                   
-                  {/* Add task button - appears on hover */}
+                  {/* Desktop: Show full task list */}
+                  <div className="hidden sm:block">
+                    <TaskList tasks={dayTasks} />
+                  </div>
+                  
+                  {/* Add task button - always visible on mobile, hover on desktop */}
                   <button
                     onClick={() => onDateClick(day)}
-                    className="w-full p-3 text-left text-sm text-gray-500 hover:text-gray-700 hover:bg-gray-50 rounded-lg transition-all opacity-0 group-hover:opacity-100 flex items-center gap-2 mt-2"
+                    className="w-full p-2 sm:p-3 text-left text-xs sm:text-sm text-gray-500 hover:text-gray-700 hover:bg-gray-50 rounded-lg transition-all sm:opacity-0 sm:group-hover:opacity-100 flex items-center gap-1 sm:gap-2 mt-2"
                   >
-                    <Plus className="w-4 h-4" />
-                    Add task
+                    <Plus className="w-3 h-3 sm:w-4 sm:h-4" />
+                    <span className="hidden sm:inline">Add task</span>
+                    <span className="sm:hidden">+</span>
                   </button>
                 </div>
 
-                {/* Paper lines for empty days */}
+                {/* Paper lines for empty days - hidden on mobile */}
                 {dayTasks.length === 0 && (
-                  <div className="absolute inset-x-4 bottom-4 space-y-2 opacity-10">
+                  <div className="absolute inset-x-2 sm:inset-x-4 bottom-4 space-y-2 opacity-10 hidden sm:block">
                     <div className="h-px bg-gray-300"></div>
                     <div className="h-px bg-gray-300"></div>
                     <div className="h-px bg-gray-300"></div>
@@ -117,25 +144,51 @@ export function WeekView({ onDateClick }: WeekViewProps) {
         </div>
       </div>
 
-      {/* Someday column */}
-      <div className="w-64 border-l-2 border-gray-200 bg-gradient-to-b from-purple-50 to-indigo-50">
-        <div className="weekday-header text-center border-b border-gray-200 py-4">
-          <div className="font-semibold text-purple-700 whitespace-nowrap">Someday</div>
-          <div className="text-xs text-purple-500 mt-1 whitespace-nowrap">Future Plans</div>
-          <div className="text-2xl mt-2 whitespace-nowrap">∞</div>
+      {/* Someday column - bottom on mobile, side on desktop */}
+      <div className="h-32 sm:h-auto sm:w-64 border-t-2 sm:border-t-0 sm:border-l-2 border-gray-200 bg-gradient-to-r sm:bg-gradient-to-b from-purple-50 to-indigo-50">
+        <div className="weekday-header text-center border-b border-gray-200 py-2 sm:py-4">
+          <div className="font-semibold text-purple-700 text-sm sm:text-base">Someday</div>
+          <div className="text-xs text-purple-500 mt-1 hidden sm:block">Future Plans</div>
+          <div className="text-lg sm:text-2xl mt-1 sm:mt-2">∞</div>
         </div>
-        <div className="p-4 h-full overflow-y-auto tweek-scroll">
-          <TaskList tasks={somedayTasks} />
+        <div className="p-2 sm:p-4 h-full overflow-y-auto calendar-scroll">
+          {/* Mobile: Show simplified task indicators */}
+          <div className="sm:hidden flex flex-wrap gap-1">
+            {somedayTasks.map((task) => (
+              <button
+                key={task.id}
+                onClick={() => {
+                  // Open task modal for editing
+                  const event = new CustomEvent('openTaskModal', { 
+                    detail: { task, mode: 'edit' } 
+                  });
+                  window.dispatchEvent(event);
+                }}
+                className="w-5 h-5 rounded-full flex items-center justify-center text-xs font-medium text-white transition-all hover:scale-110 shadow-sm flex-shrink-0"
+                style={{ backgroundColor: task.color || '#8B5CF6' }}
+                title={task.title}
+              >
+                {task.title.charAt(0).toUpperCase()}
+              </button>
+            ))}
+          </div>
+          
+          {/* Desktop: Show full task list */}
+          <div className="hidden sm:block">
+            <TaskList tasks={somedayTasks} />
+          </div>
+          
           <button
             onClick={() => {
               // Create a special someday date
               const somedayDate = new Date(0);
               onDateClick(somedayDate);
             }}
-            className="w-full p-3 text-left text-sm text-purple-600 hover:text-purple-700 hover:bg-purple-100 rounded-lg transition-all flex items-center gap-2 mt-2"
+            className="w-full p-2 sm:p-3 text-left text-xs sm:text-sm text-purple-600 hover:text-purple-700 hover:bg-purple-100 rounded-lg transition-all flex items-center gap-1 sm:gap-2 mt-2"
           >
-            <Plus className="w-4 h-4" />
-            Add someday task
+            <Plus className="w-3 h-3 sm:w-4 sm:h-4" />
+            <span className="hidden sm:inline">Add someday task</span>
+            <span className="sm:hidden">Add</span>
           </button>
         </div>
       </div>
