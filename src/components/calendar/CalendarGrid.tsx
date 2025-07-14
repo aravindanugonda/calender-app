@@ -15,7 +15,16 @@ interface ErrorResponse {
   error: string;
 }
 
-export function CalendarGrid() {
+interface Session {
+  user?: {
+    name?: string;
+    email?: string;
+    [key: string]: unknown;
+  };
+  [key: string]: unknown;
+}
+
+export function CalendarGrid({ session }: { session?: Session }) {
   const { viewType, currentDate, setTasks, setLoading, isLoading } = useCalendarStore();
   const [isTaskModalOpen, setIsTaskModalOpen] = useState(false);
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
@@ -42,18 +51,42 @@ export function CalendarGrid() {
       }
       const data = await response.json();
       setTasks(data);
-    } catch (error) {
+    } catch (error: unknown) {
       console.error("Error loading tasks:", error);
-      setError(error instanceof Error ? error.message : 'Failed to load tasks');
+      if (error instanceof Error) {
+        setError(error.message);
+      } else {
+        setError('Failed to load tasks');
+      }
     } finally {
       setLoading(false);
     }
   }, [currentDate, setTasks, viewType, setLoading]);
 
   useEffect(() => {
-    // console.log('Loading tasks for:', currentDate, viewType);
-    loadTasks();
-  }, [currentDate, viewType, loadTasks]);
+    if (session) {
+      loadTasks();
+    } else {
+      setTasks([]);
+      setError(null); 
+    }
+  }, [currentDate, viewType, loadTasks, session, setTasks]);
+
+  if (!session) {
+    return (
+      <div className="flex flex-col items-center justify-center h-full">
+        <div className="text-red-500 text-lg font-semibold mb-4">You are not authorized. Please log in.</div>
+        <button
+          className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors font-medium"
+          onClick={() => {
+            window.location.href = "/auth/login?returnTo=/dashboard";
+          }}
+        >
+          Log in
+        </button>
+      </div>
+    );
+  }
 
   const handleDateClick = (date: Date) => {
     setSelectedDate(date);
@@ -61,9 +94,8 @@ export function CalendarGrid() {
   };
 
   return (
-    <div className="flex flex-col h-full bg-gray-50">
-      <CalendarHeader />
-      
+    <div className="flex flex-col h-full bg-white">
+      {session && <CalendarHeader />}
       {isLoading ? (
         <div className="flex-1 flex items-center justify-center">
           <Loading />
@@ -81,7 +113,6 @@ export function CalendarGrid() {
           )}
         </div>
       )}
-
       <TaskModal
         isOpen={isTaskModalOpen}
         onClose={() => {
@@ -90,7 +121,6 @@ export function CalendarGrid() {
         }}
         selectedDate={selectedDate}
       />
-
       {error && (
         <Toast
           message={error}

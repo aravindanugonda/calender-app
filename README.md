@@ -41,14 +41,30 @@ A modern, feature-rich weekly planner and to-do list app inspired by Tweek. Buil
    pnpm install
    ```
 
-3. Create a .env.local file with your Auth0 credentials:
+3. Create a `.env.local` file with your Auth0 credentials and required environment variables:
    ```
+   # Auth0 configuration
+   APP_BASE_URL=http://localhost:3000
+   AUTH0_DOMAIN=https://your-auth0-domain.auth0.com
    AUTH0_SECRET=your-secret
-   AUTH0_BASE_URL=http://localhost:3000
-   AUTH0_ISSUER_BASE_URL=your-auth0-domain
    AUTH0_CLIENT_ID=your-client-id
    AUTH0_CLIENT_SECRET=your-client-secret
+
+   # Database configuration
+   TURSO_DATABASE_URL=your-libsql-or-drizzle-connection-string
+   TURSO_AUTH_TOKEN=your-auth-token
+
+   # Vercel deployment
+   NEXT_PUBLIC_VERCEL_ENV=production
+   NEXT_PUBLIC_VERCEL_URL=https://your-vercel-app-url.vercel.app
    ```
+# Recent Changes
+
+- Improved session and authentication handling (no UI clutter or unauthorized fetches after signout)
+- Calendar grid background set to white for better UI consistency
+- Dashboard header cleaned up (removed extra text and color)
+- ESLint errors for unused variables and 'any' types fixed
+
 
 4. Run the development server:
    ```bash

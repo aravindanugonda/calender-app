@@ -58,7 +58,7 @@ export const useCalendarStore = create<CalendarStore>((set, get) => ({
       const endDate = endOfWeek(date, { weekStartsOn: 1 });
       
       const url = `/api/tasks?startDate=${startDate.toISOString()}&endDate=${endDate.toISOString()}`;
-      console.log('Fetching tasks from:', url);
+      // console.log('Fetching tasks from:', url);
       
       const response = await fetch(url);
       
@@ -68,7 +68,7 @@ export const useCalendarStore = create<CalendarStore>((set, get) => ({
       }
 
       const fetchedTasks = await response.json();
-      console.log('Fetched tasks:', fetchedTasks);
+      // console.log('Fetched tasks:', fetchedTasks);
       set({ tasks: fetchedTasks, isLoading: false });
     } catch (error) {
       console.error('Error fetching tasks:', error);

@@ -8,6 +8,7 @@ import type { User } from "@/types";
 export async function GET(request: NextRequest) {
   try {
     const session = await auth0.getSession();
+    // console.log("API /api/tasks session:", session);
     if (!session) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
@@ -18,6 +19,7 @@ export async function GET(request: NextRequest) {
 
     // Get the local user ID first
     const user = await db.select().from(users).where(eq(users.auth0Id, session.user.sub)).get();
+    // console.log("API /api/tasks user:", user);
     if (!user) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
