@@ -5,7 +5,6 @@ import { format, startOfWeek, addDays, isSameDay, isToday as isDateToday } from 
 import { TaskList } from "../tasks/TaskList";
 import { cn } from "@/lib/utils";
 import { Plus } from "lucide-react";
-import { taskColors } from "@/lib/colors";
 
 interface WeekViewProps {
   onDateClick: (date: Date) => void;
