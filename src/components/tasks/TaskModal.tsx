@@ -71,7 +71,7 @@ export function TaskModal({ isOpen, onClose, selectedDate, task, mode = 'create'
       position: task?.position ?? Date.now(),
       parentTaskId: task?.parentTaskId,
       isRecurring: isRecurring,
-      recurringPattern: null,
+      recurringPattern: undefined,
       subtasks: task?.subtasks ?? [],
     };
 
