@@ -5,6 +5,7 @@ import { format, startOfWeek, addDays, isSameDay, isToday as isDateToday } from 
 import { TaskList } from "../tasks/TaskList";
 import { cn } from "@/lib/utils";
 import { Plus } from "lucide-react";
+import { taskColors } from "@/lib/colors";
 
 interface WeekViewProps {
   onDateClick: (date: Date) => void;
@@ -12,6 +13,19 @@ interface WeekViewProps {
 
 export function WeekView({ onDateClick }: WeekViewProps) {
   const { currentDate, tasks, searchQuery, getFilteredTasks } = useCalendarStore();
+
+  // Helper function to get a solid color for mobile indicators
+  const getTaskIndicatorColor = (colorKey: string) => {
+    const colorMap = {
+      'default': '#6B7280', // gray-500
+      'red': '#EF4444',     // red-500
+      'amber': '#F59E0B',   // amber-500
+      'emerald': '#10B981', // emerald-500
+      'blue': '#3B82F6',    // blue-500
+      'purple': '#8B5CF6'   // purple-500
+    };
+    return colorMap[colorKey as keyof typeof colorMap] || colorMap.default;
+  };
   const weekStart = startOfWeek(currentDate, { weekStartsOn: 1 });
 
   const weekDays = Array.from({ length: 7 }, (_, i) => addDays(weekStart, i));
@@ -103,7 +117,7 @@ export function WeekView({ onDateClick }: WeekViewProps) {
                           window.dispatchEvent(event);
                         }}
                         className="w-5 h-5 rounded-full flex items-center justify-center text-xs font-medium text-white transition-all hover:scale-110 shadow-sm flex-shrink-0"
-                        style={{ backgroundColor: task.color || '#3B82F6' }}
+                        style={{ backgroundColor: getTaskIndicatorColor(task.color) }}
                         title={task.title}
                       >
                         {task.title.charAt(0).toUpperCase()}
@@ -165,7 +179,7 @@ export function WeekView({ onDateClick }: WeekViewProps) {
                   window.dispatchEvent(event);
                 }}
                 className="w-5 h-5 rounded-full flex items-center justify-center text-xs font-medium text-white transition-all hover:scale-110 shadow-sm flex-shrink-0"
-                style={{ backgroundColor: task.color || '#8B5CF6' }}
+                style={{ backgroundColor: getTaskIndicatorColor(task.color) }}
                 title={task.title}
               >
                 {task.title.charAt(0).toUpperCase()}

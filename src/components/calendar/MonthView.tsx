@@ -11,6 +11,19 @@ interface MonthViewProps {
 export function MonthView({ onDateClick }: MonthViewProps) {
   const { currentDate, tasks, searchQuery, getFilteredTasks } = useCalendarStore();
 
+  // Helper function to get a solid color for mobile indicators
+  const getTaskIndicatorColor = (colorKey: string) => {
+    const colorMap = {
+      'default': '#6B7280', // gray-500
+      'red': '#EF4444',     // red-500
+      'amber': '#F59E0B',   // amber-500
+      'emerald': '#10B981', // emerald-500
+      'blue': '#3B82F6',    // blue-500
+      'purple': '#8B5CF6'   // purple-500
+    };
+    return colorMap[colorKey as keyof typeof colorMap] || colorMap.default;
+  };
+
   const monthStart = startOfMonth(currentDate);
   const monthEnd = endOfMonth(currentDate);
   const calendarStart = startOfWeek(monthStart, { weekStartsOn: 1 });
@@ -107,7 +120,7 @@ export function MonthView({ onDateClick }: MonthViewProps) {
                               window.dispatchEvent(event);
                             }}
                             className="w-2 h-2 rounded-full transition-all hover:scale-125"
-                            style={{ backgroundColor: task.color || '#3B82F6' }}
+                            style={{ backgroundColor: getTaskIndicatorColor(task.color) }}
                             title={task.title}
                           />
                         ))}
