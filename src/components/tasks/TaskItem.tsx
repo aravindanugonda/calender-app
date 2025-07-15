@@ -34,7 +34,10 @@ export function TaskItem({ task }: TaskItemProps) {
         <div className="flex items-center gap-2 sm:gap-3">
           {/* Checkbox */}
           <button
-            onClick={() => toggleTaskComplete(task.id)}
+            onClick={(e) => {
+              e.stopPropagation();
+              toggleTaskComplete(task.id);
+            }}
             className="shrink-0 focus:outline-none min-w-[32px] min-h-[32px] sm:min-w-0 sm:min-h-0 flex items-center justify-center rounded"
           >
             {task.completed ? (
@@ -46,7 +49,10 @@ export function TaskItem({ task }: TaskItemProps) {
 
           {/* Task title */}
           <span
-            onClick={() => setShowEditModal(true)}
+            onClick={(e) => {
+              e.stopPropagation();
+              setShowEditModal(true);
+            }}
             className={cn(
               "flex-1 text-sm sm:text-sm transition-colors cursor-pointer py-2 sm:py-0",
               task.completed ? "line-through text-gray-500" : `text-${color.text}`
@@ -57,7 +63,10 @@ export function TaskItem({ task }: TaskItemProps) {
 
           {/* Edit button */}
           <button
-            onClick={() => setShowEditModal(true)}
+            onClick={(e) => {
+              e.stopPropagation();
+              setShowEditModal(true);
+            }}
             className="shrink-0 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity p-2 sm:p-1 hover:bg-black/5 rounded min-w-[32px] min-h-[32px] sm:min-w-0 sm:min-h-0 flex items-center justify-center"
           >
             <Pencil className="w-4 h-4 sm:w-4 sm:h-4 text-gray-400" />

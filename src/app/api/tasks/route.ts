@@ -44,16 +44,29 @@ export async function GET(request: NextRequest) {
 
     let userTasks;
     if (startDate && endDate) {
-      userTasks = await db
+      // Fetch tasks in date range AND someday tasks (epoch 0)
+      const rangeTasks = await db
         .select()
         .from(tasks)
         .where(
           and(
-            eq(tasks.userId, user.id), // Use local user ID
+            eq(tasks.userId, user.id),
             gte(tasks.date, startDate),
             lte(tasks.date, endDate)
           )
         );
+      
+      const somedayTasks = await db
+        .select()
+        .from(tasks)
+        .where(
+          and(
+            eq(tasks.userId, user.id),
+            eq(tasks.date, "1970-01-01T00:00:00.000Z")
+          )
+        );
+      
+      userTasks = [...rangeTasks, ...somedayTasks];
     } else {
       userTasks = await db
         .select()

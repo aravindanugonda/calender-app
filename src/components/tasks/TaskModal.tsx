@@ -27,6 +27,7 @@ export function TaskModal({ isOpen, onClose, selectedDate, task, mode = 'create'
   const [showConfirmDelete, setShowConfirmDelete] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [newSelectedDate, setNewSelectedDate] = useState<Date | null>(selectedDate);
 
   // Update state when task prop changes
   useEffect(() => {
@@ -35,15 +36,17 @@ export function TaskModal({ isOpen, onClose, selectedDate, task, mode = 'create'
       setDescription(task.description || "");
       setColorKey(task.color as TaskColorKey || 'default');
       setIsRecurring(task.isRecurring || false);
+      setNewSelectedDate(selectedDate);
     } else {
       setTitle("");
       setDescription("");
       setColorKey('default');
       setIsRecurring(false);
+      setNewSelectedDate(selectedDate);
     }
     setError(null);
     setShowConfirmDelete(false);
-  }, [task, isOpen]);
+  }, [task, isOpen, selectedDate]);
 
   if (!isOpen) return null;
 
@@ -51,7 +54,7 @@ export function TaskModal({ isOpen, onClose, selectedDate, task, mode = 'create'
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!title.trim() || !selectedDate) return;
+    if (!title.trim() || !newSelectedDate) return;
 
     setIsSubmitting(true);
     setError(null);
@@ -65,7 +68,7 @@ export function TaskModal({ isOpen, onClose, selectedDate, task, mode = 'create'
       userId: task?.userId || user.sub, // Keep existing userId for updates, use user.sub for new tasks
       title: title.trim(),
       description,
-      date: selectedDate.toISOString(),
+      date: newSelectedDate.toISOString(),
       completed: task?.completed ?? false,
       color: colorKey,
       position: task?.position ?? Date.now(),
@@ -140,12 +143,38 @@ export function TaskModal({ isOpen, onClose, selectedDate, task, mode = 'create'
               />
             </div>
 
-            {/* Date display */}
-            <div className="flex items-center gap-2 text-sm text-gray-500">
-              <Calendar className="w-4 h-4" />
-              <span>
-                {isSomedayTask ? "Someday" : format(selectedDate!, 'EEEE, MMMM d, yyyy')}
-              </span>
+            {/* Date display and picker for someday tasks */}
+            <div className="space-y-3">
+              <div className="flex items-center gap-2 text-sm text-gray-500">
+                <Calendar className="w-4 h-4" />
+                <span>
+                  {newSelectedDate?.getTime() === 0 ? "Someday" : format(newSelectedDate!, 'EEEE, MMMM d, yyyy')}
+                </span>
+              </div>
+              
+              {/* Date picker for someday tasks */}
+              {isSomedayTask && mode === 'edit' && (
+                <div className="border border-gray-200 rounded-lg p-3 bg-blue-50">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Move to specific date (optional)
+                  </label>
+                  <input
+                    type="date"
+                    value={newSelectedDate?.getTime() === 0 ? '' : format(newSelectedDate!, 'yyyy-MM-dd')}
+                    onChange={(e) => {
+                      if (e.target.value) {
+                        setNewSelectedDate(new Date(e.target.value + 'T12:00:00'));
+                      } else {
+                        setNewSelectedDate(new Date(0));
+                      }
+                    }}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-blue-500 focus:border-blue-500"
+                  />
+                  <p className="text-xs text-gray-500 mt-1">
+                    Leave empty to keep as someday task
+                  </p>
+                </div>
+              )}
             </div>
 
             {/* Color picker */}

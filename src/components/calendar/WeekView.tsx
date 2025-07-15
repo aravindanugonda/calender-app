@@ -46,7 +46,7 @@ export function WeekView({ onDateClick }: WeekViewProps) {
   // Get tasks that don't have a specific date (someday tasks)
   const somedayTasks = (searchQuery ? getFilteredTasks() : tasks).filter((task) => {
     const taskDate = new Date(task.date);
-    return taskDate.getTime() === 0 || task.title.toLowerCase().includes('someday');
+    return taskDate.getTime() === 0;
   });
 
   return (
@@ -68,8 +68,8 @@ export function WeekView({ onDateClick }: WeekViewProps) {
                 )}
               >
                 <div className="font-semibold text-gray-700 text-xs sm:text-sm">{format(day, "EEE")}</div>
-                <div className="text-xs text-gray-500 mt-1 hidden sm:block">{format(day, "MMM d")}</div>
-                <div className="text-xs text-gray-500 mt-1 sm:hidden">{format(day, "M/d")}</div>
+                <div className="text-xs text-gray-500 mt-1 hidden sm:block">{format(day, "MMMM")}</div>
+                <div className="text-xs text-gray-500 mt-1 sm:hidden">{format(day, "MMM")}</div>
                 <div
                   className={cn(
                     "day-number w-6 h-6 sm:w-8 sm:h-8 rounded-full flex items-center justify-center mx-auto mt-1 sm:mt-2 text-xs sm:text-sm font-medium",
@@ -100,28 +100,55 @@ export function WeekView({ onDateClick }: WeekViewProps) {
                   isWeekend && "bg-gray-50/50",
                   isToday && "bg-blue-50/30 sm:border-l-2 sm:border-blue-400"
                 )}
+                onClick={() => onDateClick(day)}
               >
                 {/* Day column content */}
-                <div className="p-2 sm:p-4 h-full overflow-y-auto calendar-scroll">
-                  {/* Mobile: Show simplified task indicators */}
-                  <div className="sm:hidden flex flex-wrap gap-1">
-                    {dayTasks.map((task) => (
-                      <button
-                        key={task.id}
-                        onClick={() => {
-                          // Open task modal for editing
-                          const event = new CustomEvent('openTaskModal', { 
-                            detail: { task, mode: 'edit' } 
-                          });
-                          window.dispatchEvent(event);
+                <div className="p-2 sm:p-4 h-full overflow-y-auto calendar-scroll"
+                     onClick={(e) => e.stopPropagation()}>
+                  {/* Mobile: Show simplified task indicators and add button */}
+                  <div className="sm:hidden">
+                    <div className="flex flex-wrap gap-1 items-center">
+                      {dayTasks.map((task) => (
+                        <button
+                          key={task.id}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            // Open task modal for editing
+                            const event = new CustomEvent('openTaskModal', { 
+                              detail: { task, mode: 'edit' } 
+                            });
+                            window.dispatchEvent(event);
+                          }}
+                          className="w-5 h-5 rounded-full flex items-center justify-center text-xs font-medium text-white transition-all hover:scale-110 shadow-sm flex-shrink-0"
+                          style={{ backgroundColor: getTaskIndicatorColor(task.color) }}
+                          title={task.title}
+                        >
+                          {task.title.charAt(0).toUpperCase()}
+                        </button>
+                      ))}
+                      {dayTasks.length > 0 && (
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onDateClick(day);
+                          }}
+                          className="w-5 h-5 rounded-full flex items-center justify-center text-xs text-gray-500 border border-gray-300 transition-all hover:bg-gray-100 flex-shrink-0"
+                          title="Add task"
+                        >
+                          +
+                        </button>
+                      )}
+                    </div>
+                    {/* Mobile empty area click handler */}
+                    {dayTasks.length === 0 && (
+                      <div 
+                        className="h-full min-h-[40px] w-full"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onDateClick(day);
                         }}
-                        className="w-5 h-5 rounded-full flex items-center justify-center text-xs font-medium text-white transition-all hover:scale-110 shadow-sm flex-shrink-0"
-                        style={{ backgroundColor: getTaskIndicatorColor(task.color) }}
-                        title={task.title}
-                      >
-                        {task.title.charAt(0).toUpperCase()}
-                      </button>
-                    ))}
+                      />
+                    )}
                   </div>
                   
                   {/* Desktop: Show full task list */}
@@ -129,14 +156,16 @@ export function WeekView({ onDateClick }: WeekViewProps) {
                     <TaskList tasks={dayTasks} />
                   </div>
                   
-                  {/* Add task button - always visible on mobile, hover on desktop */}
+                  {/* Add task button - only visible on desktop hover */}
                   <button
-                    onClick={() => onDateClick(day)}
-                    className="w-full p-2 sm:p-3 text-left text-xs sm:text-sm text-gray-500 hover:text-gray-700 hover:bg-gray-50 rounded-lg transition-all sm:opacity-0 sm:group-hover:opacity-100 flex items-center gap-1 sm:gap-2 mt-2"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onDateClick(day);
+                    }}
+                    className="w-full p-2 sm:p-3 text-left text-xs sm:text-sm text-gray-500 hover:text-gray-700 hover:bg-gray-50 rounded-lg transition-all opacity-0 sm:group-hover:opacity-100 hidden sm:flex items-center gap-1 sm:gap-2 mt-2"
                   >
                     <Plus className="w-3 h-3 sm:w-4 sm:h-4" />
-                    <span className="hidden sm:inline">Add task</span>
-                    <span className="sm:hidden">+</span>
+                    <span>Add task</span>
                   </button>
                 </div>
 
@@ -158,32 +187,64 @@ export function WeekView({ onDateClick }: WeekViewProps) {
       </div>
 
       {/* Someday column - bottom on mobile, side on desktop */}
-      <div className="h-32 sm:h-auto sm:w-64 border-t-2 sm:border-t-0 sm:border-l-2 border-gray-200 bg-gradient-to-r sm:bg-gradient-to-b from-purple-50 to-indigo-50">
+      <div className="h-32 sm:h-auto sm:w-64 border-t-2 sm:border-t-0 sm:border-l-2 border-gray-200 bg-gradient-to-r sm:bg-gradient-to-b from-purple-50 to-indigo-50 cursor-pointer"
+           onClick={() => {
+             const somedayDate = new Date(0);
+             onDateClick(somedayDate);
+           }}>
         <div className="weekday-header text-center border-b border-gray-200 py-2 sm:py-4">
           <div className="font-semibold text-purple-700 text-sm sm:text-base">Someday</div>
           <div className="text-xs text-purple-500 mt-1 hidden sm:block">Future Plans</div>
           <div className="text-lg sm:text-2xl mt-1 sm:mt-2">∞</div>
         </div>
-        <div className="p-2 sm:p-4 h-full overflow-y-auto calendar-scroll">
-          {/* Mobile: Show simplified task indicators */}
-          <div className="sm:hidden flex flex-wrap gap-1">
-            {somedayTasks.map((task) => (
-              <button
-                key={task.id}
-                onClick={() => {
-                  // Open task modal for editing
-                  const event = new CustomEvent('openTaskModal', { 
-                    detail: { task, mode: 'edit' } 
-                  });
-                  window.dispatchEvent(event);
+        <div className="p-2 sm:p-4 h-full overflow-y-auto calendar-scroll"
+             onClick={(e) => e.stopPropagation()}>
+          {/* Mobile: Show simplified task indicators and add button */}
+          <div className="sm:hidden">
+            <div className="flex flex-wrap gap-1 items-center">
+              {somedayTasks.map((task) => (
+                <button
+                  key={task.id}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    // Open task modal for editing
+                    const event = new CustomEvent('openTaskModal', { 
+                      detail: { task, mode: 'edit' } 
+                    });
+                    window.dispatchEvent(event);
+                  }}
+                  className="w-5 h-5 rounded-full flex items-center justify-center text-xs font-medium text-white transition-all hover:scale-110 shadow-sm flex-shrink-0"
+                  style={{ backgroundColor: getTaskIndicatorColor(task.color) }}
+                  title={task.title}
+                >
+                  {task.title.charAt(0).toUpperCase()}
+                </button>
+              ))}
+              {somedayTasks.length > 0 && (
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    const somedayDate = new Date(0);
+                    onDateClick(somedayDate);
+                  }}
+                  className="w-5 h-5 rounded-full flex items-center justify-center text-xs text-purple-600 border border-purple-300 transition-all hover:bg-purple-100 flex-shrink-0"
+                  title="Add someday task"
+                >
+                  +
+                </button>
+              )}
+            </div>
+            {/* Mobile empty area click handler */}
+            {somedayTasks.length === 0 && (
+              <div 
+                className="h-full min-h-[40px] w-full"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  const somedayDate = new Date(0);
+                  onDateClick(somedayDate);
                 }}
-                className="w-5 h-5 rounded-full flex items-center justify-center text-xs font-medium text-white transition-all hover:scale-110 shadow-sm flex-shrink-0"
-                style={{ backgroundColor: getTaskIndicatorColor(task.color) }}
-                title={task.title}
-              >
-                {task.title.charAt(0).toUpperCase()}
-              </button>
-            ))}
+              />
+            )}
           </div>
           
           {/* Desktop: Show full task list */}
@@ -191,17 +252,17 @@ export function WeekView({ onDateClick }: WeekViewProps) {
             <TaskList tasks={somedayTasks} />
           </div>
           
+          {/* Add task button - only visible on desktop */}
           <button
-            onClick={() => {
-              // Create a special someday date
+            onClick={(e) => {
+              e.stopPropagation();
               const somedayDate = new Date(0);
               onDateClick(somedayDate);
             }}
-            className="w-full p-2 sm:p-3 text-left text-xs sm:text-sm text-purple-600 hover:text-purple-700 hover:bg-purple-100 rounded-lg transition-all flex items-center gap-1 sm:gap-2 mt-2"
+            className="w-full p-2 sm:p-3 text-left text-xs sm:text-sm text-purple-600 hover:text-purple-700 hover:bg-purple-100 rounded-lg transition-all hidden sm:flex items-center gap-1 sm:gap-2 mt-2"
           >
             <Plus className="w-3 h-3 sm:w-4 sm:h-4" />
-            <span className="hidden sm:inline">Add someday task</span>
-            <span className="sm:hidden">Add</span>
+            <span>Add someday task</span>
           </button>
         </div>
       </div>

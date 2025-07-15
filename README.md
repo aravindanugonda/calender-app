@@ -13,12 +13,31 @@ A modern, feature-rich weekly planner and to-do list app. Built with Next.js 15,
 - 🎯 **Today focus button** for quick navigation
 - 📆 **Interactive date navigation** with clickable month/year pickers
 - 🌙 **"Someday" column** for future tasks and ideas
+- 📅 **Smart task scheduling** - Move someday tasks to specific dates
 - 🔒 **Secure authentication** with Auth0 v4
 - 💾 **Data persistence** with Turso (LibSQL) and DrizzleORM
 - ⚡ **PWA support** for offline access
 - 🎨 **Current day highlighting** in both week and month views
 - 🔄 **Real-time updates** with optimistic UI
 - 👤 **Automatic user provisioning** on first login
+
+## Mobile Experience
+
+### Week View
+- **Empty cells**: Tap anywhere to add tasks
+- **Cells with tasks**: Tap task indicators to edit, tap "+" button to add new tasks
+- **Someday column**: Same intuitive behavior for future task planning
+
+### Month View  
+- **Empty cells**: Tap anywhere to add tasks
+- **Cells with tasks**: Tap task indicators to edit, tap "+" button to add new tasks
+- **Smart interaction**: Only designated buttons trigger actions when cells contain tasks
+
+### Key Mobile Features
+- **No button clutter**: Clean interface with context-aware interactions
+- **Large touch targets**: Easy interaction on small screens
+- **Intuitive gestures**: Natural tap behavior for task management
+- **Optimized layout**: Compact but readable design for mobile devices
 
 ## Tech Stack
 
@@ -113,7 +132,16 @@ src/
 
 ## Recent Changes
 
-### Latest Updates
+### Latest Updates (Mobile & UX Improvements)
+- ✅ **Enhanced Mobile UI** - Streamlined mobile interface with intuitive touch interactions
+- ✅ **Fixed Task Editing** - Resolved issues where edit buttons opened new task modals instead of edit modals
+- ✅ **Improved Week View Date Display** - Shows full month names instead of abbreviated dates
+- ✅ **Enhanced Someday Functionality** - Proper someday task management that persists across all views
+- ✅ **Smart Mobile Interactions** - Context-aware clicking behavior for optimal mobile experience
+- ✅ **Optimized Button Layout** - Removed redundant buttons on mobile while preserving desktop functionality
+- ✅ **Date Scheduling from Someday** - Added ability to move someday tasks to specific dates via edit modal
+
+### Previous Updates
 - ✅ **Fixed Auth0 v4 integration** - Proper middleware-based authentication
 - ✅ **Enhanced calendar UI** - Removed overlapping welcome message
 - ✅ **Added interactive date navigation** - Clickable month/year pickers

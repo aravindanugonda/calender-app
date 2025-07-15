@@ -79,7 +79,20 @@ export function MonthView({ onDateClick }: MonthViewProps) {
                 isCurrentDay && "bg-blue-50 hover:bg-blue-50/80 border-2 border-blue-300 shadow-sm",
                 isWeekend && !isCurrentDay && "bg-gray-50/30"
               )}
-              onClick={() => isCurrentMonth && onDateClick(date)}
+              onClick={() => {
+                // Only allow cell clicks to open add modal when:
+                // 1. It's current month
+                // 2. On mobile: only if there are no tasks (empty cells)
+                // 3. On desktop: always (existing behavior)
+                if (isCurrentMonth) {
+                  const isMobile = window.innerWidth < 640;
+                  if (isMobile && dayTasks.length > 0) {
+                    // On mobile with tasks: do nothing, only + button should work
+                    return;
+                  }
+                  onDateClick(date);
+                }
+              }}
             >
               <div className="flex justify-between items-center mb-1 sm:mb-2">
                 <div className={cn(
@@ -95,7 +108,7 @@ export function MonthView({ onDateClick }: MonthViewProps) {
                       e.stopPropagation();
                       onDateClick(date);
                     }}
-                    className="sm:opacity-0 sm:group-hover:opacity-100 transition-opacity p-1 rounded-full hover:bg-gray-200 min-w-[32px] min-h-[32px] sm:min-w-0 sm:min-h-0 flex items-center justify-center"
+                    className="opacity-0 sm:group-hover:opacity-100 transition-opacity p-1 rounded-full hover:bg-gray-200 hidden sm:flex items-center justify-center"
                   >
                     <Plus className="w-3 h-3 sm:w-4 sm:h-4 text-gray-600" />
                   </button>
@@ -104,16 +117,17 @@ export function MonthView({ onDateClick }: MonthViewProps) {
               
               {isCurrentMonth && (
                 <>
-                  {/* Mobile: Show only task indicators */}
+                  {/* Mobile: Show only task indicators and add button */}
                   <div className="sm:hidden">
                     {dayTasks.length > 0 && (
-                      <div className="flex flex-wrap gap-1 mt-1">
+                      <div className="flex flex-wrap gap-1 mt-1 items-center" onClick={(e) => e.stopPropagation()}>
                         {dayTasks.slice(0, 6).map((task) => (
                           <button
                             key={task.id}
                             onClick={(e) => {
                               e.stopPropagation();
-                              // Open task modal for editing
+                              e.preventDefault();
+                              // Open task modal for editing immediately
                               const event = new CustomEvent('openTaskModal', { 
                                 detail: { task, mode: 'edit' } 
                               });
@@ -127,6 +141,18 @@ export function MonthView({ onDateClick }: MonthViewProps) {
                         {dayTasks.length > 6 && (
                           <span className="text-xs text-gray-500 ml-1">+{dayTasks.length - 6}</span>
                         )}
+                        {/* Add task button for cells with tasks */}
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            e.preventDefault();
+                            onDateClick(date);
+                          }}
+                          className="w-3 h-3 rounded-full flex items-center justify-center text-xs text-gray-500 border border-gray-300 transition-all hover:bg-gray-100 ml-1"
+                          title="Add task"
+                        >
+                          +
+                        </button>
                       </div>
                     )}
                   </div>

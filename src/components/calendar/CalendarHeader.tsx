@@ -107,7 +107,7 @@ export function CalendarHeader() {
             >
               {viewType === "month" 
                 ? format(currentDate, window.innerWidth < 640 ? "MMM" : "MMMM")
-                : format(currentDate, "MMM")
+                : format(currentDate, "MMMM")
               }
             </button>
             <button
